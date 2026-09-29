@@ -1,0 +1,219 @@
+palette = "asura"
+#[character]
+#success_symbol = "[λ ](bold fg:dir_fg)"
+#error_symbol = "[λ ](bold fg:crimson)"
+
+[aws]
+symbol = "  "
+
+[buf]
+symbol = " "
+
+[c]
+symbol = " "
+
+[cmake]
+symbol = " "
+
+[conda]
+symbol = " "
+
+[crystal]
+symbol = " "
+
+[dart]
+symbol = " "
+
+[directory]
+read_only = " 󰌾"
+
+[docker_context]
+symbol = " "
+
+[elixir]
+symbol = " "
+
+[elm]
+symbol = " "
+
+[fennel]
+symbol = " "
+
+[fossil_branch]
+symbol = " "
+
+[git_branch]
+symbol = " "
+
+[git_commit]
+tag_symbol = '  '
+
+[golang]
+symbol = " "
+
+[guix_shell]
+symbol = " "
+
+[haskell]
+symbol = " "
+
+[haxe]
+symbol = " "
+
+[hg_branch]
+symbol = " "
+
+[hostname]
+ssh_symbol = " "
+
+[java]
+symbol = " "
+
+[julia]
+symbol = " "
+
+[kotlin]
+symbol = " "
+
+[lua]
+symbol = " "
+
+[memory_usage]
+symbol = "󰍛 "
+
+[meson]
+symbol = "󰔷 "
+
+[nim]
+symbol = "󰆥 "
+
+[nix_shell]
+symbol = " "
+
+[nodejs]
+symbol = " "
+
+[ocaml]
+symbol = " "
+
+[os.symbols]
+Alpaquita = " "
+Alpine = " "
+AlmaLinux = " "
+Amazon = " "
+Android = " "
+Arch = " "
+Artix = " "
+CachyOS = " "
+CentOS = " "
+Debian = " "
+DragonFly = " "
+Emscripten = " "
+EndeavourOS = " "
+Fedora = " "
+FreeBSD = " "
+Garuda = "󰛓 "
+Gentoo = " "
+HardenedBSD = "󰞌 "
+Illumos = "󰈸 "
+Kali = " "
+Linux = " "
+Mabox = " "
+Macos = " "
+Manjaro = " "
+Mariner = " "
+MidnightBSD = " "
+Mint = " "
+NetBSD = " "
+NixOS = " "
+Nobara = " "
+OpenBSD = "󰈺 "
+openSUSE = " "
+OracleLinux = "󰌷 "
+Pop = " "
+Raspbian = " "
+Redhat = " "
+RedHatEnterprise = " "
+RockyLinux = " "
+Redox = "󰀘 "
+Solus = "󰠳 "
+SUSE = " "
+Ubuntu = " "
+Unknown = " "
+Void = " "
+Windows = "󰍲 "
+
+[package]
+symbol = "󰏗 "
+
+[perl]
+symbol = " "
+
+[php]
+symbol = " "
+
+[pijul_channel]
+symbol = " "
+
+[python]
+symbol = " "
+
+[rlang]
+symbol = "󰟔 "
+
+[ruby]
+symbol = " "
+
+[rust]
+symbol = "󱘗 "
+
+[scala]
+symbol = " "
+
+[swift]
+symbol = " "
+
+[zig]
+symbol = " "
+
+[gradle]
+symbol = " "
+
+[palettes.asura]
+# Standard colors
+blue      = "#8a85ad"
+red       = "#fd4663"
+green     = "#8bb9c1"
+yellow    = "#b3877f"
+cyan      = "#d0b4af"
+magenta   = "#accdd3"
+white     = "#f2f3f3"
+black     = "#252c2d"
+
+# Extended palette (Catppuccin-compatible names)
+rosewater = "#b3877f"
+flamingo  = "#fd4663"
+pink      = "#accdd3"
+mauve     = "#accdd3"
+maroon    = "#fd4663"
+peach     = "#b3877f"
+teal      = "#d0b4af"
+sky       = "#d0b4af"
+sapphire  = "#8a85ad"
+lavender  = "#accdd3"
+
+# Text shades
+text      = "#f2f3f3"
+subtext1  = "#f2f3f3"
+subtext0  = "#5f6d6f"
+
+# Surface shades
+overlay2  = "#5f6d6f"
+overlay1  = "#5f6d6f"
+overlay0  = "#252c2d"
+surface2  = "#252c2d"
+surface1  = "#252c2d"
+surface0  = "#1c2122"
+base      = "#1c2122"
+mantle    = "#1c2122"
+crust     = "#1c2122"

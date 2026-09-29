@@ -1,0 +1,72 @@
+[config]
+
+[templates.Asura]
+input_path = "~/.config/matugen/themes/qs.json"
+output_path = "~/.config/quickshell/colors.json"
+
+[templates.hyprland]
+input_path = "~/.config/matugen/themes/hyprland-colors.lua"
+output_path = "~/.config/hypr/scheme/current.lua"
+post_hook = "hyprctl reload"
+
+[templates.kitty]
+input_path = "~/.config/matugen/themes/kitty-colors.conf"
+output_path = "~/.config/kitty/themes/Asura.conf"
+post_hook = "kitty +kitten themes --reload-in=all Asura"
+
+[templates.btop]
+input_path = "~/.config/matugen/themes/btop.theme"
+output_path = "~/.config/btop/themes/Asura.theme"
+post_hook = "pkill -USR2 btop || true"
+
+[templates.micro]
+input_path = "~/.config/matugen/themes/micro.micro"
+output_path = "~/.config/micro/colorschemes/Asura.micro"
+
+[templates.starship]
+input_path = "~/.config/matugen/themes/starship-colors.toml"
+output_path = "~/.config/starship.toml"
+
+[templates.fish]
+input_path = "~/.config/matugen/themes/fish-colors.fish"
+output_path = "~/.config/fish/conf.d/matugen.fish"
+
+[templates.fastfetch]
+input_path = "~/.config/matugen/themes/fastfetch.jsonc"
+output_path = "~/.config/fastfetch/config.jsonc"
+
+[templates.flameshot]
+input_path = "~/.config/matugen/themes/flameshot.ini"
+output_path = "~/.config/flameshot/flameshot.ini"
+
+[templates.gtk3]
+input_path = "~/.config/matugen/themes/gtk-colors.css"
+output_path = "~/.config/gtk-3.0/colors.css"
+post_hook = 'gsettings set org.gnome.desktop.interface gtk-theme ""; gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-{{mode}}'
+
+[templates.gtk4]
+input_path = "~/.config/matugen/themes/gtk-colors.css"
+output_path = "~/.config/gtk-4.0/colors.css"
+post_hook = "~/.config/matugen/post-hook-scripts/gtk-themes-reload.sh"
+
+[templates.vivaldi]
+input_path = "~/.config/matugen/themes/vivaldi.css"
+output_path = "~/.config/matugen/vivaldi/vivaldi.css"
+post_hook = '~/.config/matugen/post-hook-scripts/vivaldi-wallpaper.sh "{{image}}"'
+
+[templates.vscode-raw]
+input_path = "~/.config/matugen/themes/vscode-colors"
+output_path = "~/.cache/matugen/vscode-colors"
+
+[templates.vscode-json]
+input_path = "~/.config/matugen/themes/vscode-colors.json"
+output_path = "~/.cache/matugen/vscode-colors.json"
+
+[templates.cava]
+input_path = "~/.config/matugen/themes/cava-colors.ini"
+output_path = "~/.config/cava/config"
+post_hook = "pkill -USR2 cava || true"
+
+[templates.nvim]
+input_path = "~/.config/matugen/themes/nvim-colors.vim"
+output_path = "~/.config/nvim/colors/asura.vim"
