@@ -187,7 +187,7 @@ def install_dependencies():
             # Fish Shell Tools
             "bat", "zoxide", "eza", "fzf", "fd",
             # Hyprland session helpers & build tools for hyprpm
-            "cliphist", "gammastep", "trash-cli", "gnome-keyring", "polkit-gnome", "cmake", "cpio",
+            "cliphist", "gammastep", "trash-cli", "gnome-keyring", "polkit-gnome", "cmake", "cpio", "gcc", "pkgconf", "hyprland-headers",
             # System, Media & Qt6
             "qt6-declarative", "qt6-5compat",
             "wireplumber", "libpulse", "sound-theme-freedesktop",
@@ -236,7 +236,7 @@ def install_dependencies():
             # Fish Shell Tools
             "bat", "zoxide", "eza", "fzf", "fd-find",
             # Hyprland session helpers & build tools for hyprpm
-            "cliphist", "gammastep", "trash-cli", "gnome-keyring", "cmake", "cpio",
+            "cliphist", "gammastep", "trash-cli", "gnome-keyring", "cmake", "cpio", "gcc", "gcc-c++", "hyprland-devel", "pkgconf-pkg-config",
             # System, Media & Qt6
             "qt6-qtdeclarative", "qt6-qt5compat",
             "wireplumber", "pulseaudio-utils", "sound-theme-freedesktop",
@@ -406,15 +406,21 @@ def setup_hyprland_plugins():
 
     print("Configuring Hyprland plugins via hyprpm...")
     try:
+        # Ensure hyprpm headers are built/updated
+        print("  -> Updating hyprpm headers (this may take a moment)...")
+        subprocess.run(["hyprpm", "update", "-f"], check=False)
+
         res = subprocess.run(["hyprpm", "list"], capture_output=True, text=True, timeout=10)
         if "hyprland-scroll-overview" not in res.stdout:
             print("  -> Adding hyprland-scroll-overview plugin...")
-            subprocess.run(["hyprpm", "add", "https://github.com/yayuuu/hyprland-scroll-overview"], check=False)
+            subprocess.run(["hyprpm", "add", "https://github.com/yayuuu/hyprland-scroll-overview"], input="y\n", text=True, check=False)
             subprocess.run(["hyprpm", "enable", "scrolloverview"], check=False)
             subprocess.run(["hyprpm", "reload"], check=False)
+            print("  ✓ hyprland-scroll-overview added and enabled.")
         else:
             print("  ✓ hyprland-scroll-overview is already registered.")
             subprocess.run(["hyprpm", "enable", "scrolloverview"], check=False)
+            subprocess.run(["hyprpm", "reload"], check=False)
     except Exception as e:
         print(f"Notice: Could not configure hyprpm plugins: {e}")
 
@@ -461,6 +467,20 @@ def setup_fish_environment():
         if not daemon_symlink.exists():
             daemon_symlink.symlink_to(Path(shutil.which("swww-daemon")))
             print(f"  ✓ Created compatibility symlink: {daemon_symlink} -> swww-daemon")
+
+
+def setup_asura_config():
+    """Ensure ~/.config/asura directory exists with default hypr-vars.lua and hypr-user.lua."""
+    config_dir.mkdir(parents=True, exist_ok=True)
+    hypr_vars = config_dir / "hypr-vars.lua"
+    if not hypr_vars.exists():
+        hypr_vars.write_text("return {}\n")
+        print(f"  ✓ Created default user variables file: {hypr_vars}")
+
+    hypr_user = config_dir / "hypr-user.lua"
+    if not hypr_user.exists():
+        hypr_user.write_text("-- Custom user Hyprland configurations\n")
+        print(f"  ✓ Created default user config file: {hypr_user}")
 
 
 def main():
@@ -571,6 +591,7 @@ def main():
 
     # Setup plugins & environment integrations
     print("\nVerifying plugins and environment integrations...")
+    setup_asura_config()
     setup_micro_plugins()
     setup_hyprland_plugins()
     setup_fish_environment()
