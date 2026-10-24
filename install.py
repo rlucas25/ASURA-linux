@@ -114,14 +114,18 @@ def install_dependencies():
             "hyprland", "hypridle", "quickshell", "awww", "starship",
             "qt6-qtdeclarative", "qt6-qt5compat",
             "wireplumber", "pulseaudio-utils", "sound-theme-freedesktop",
-            "NetworkManager", "bluez", "brightnessctl", "power-profiles-daemon",
+            "NetworkManager", "bluez", "brightnessctl",
             "wl-clipboard", "wtype", "zenity", "nwg-look", "xdg-utils", "jq", "ffmpeg",
             "cava", "kitty", "fastfetch", "flameshot", "micro", "btop", "fish",
             "python3-pillow", "python3-numpy"
         ]
 
-        # Install packages with --skip-unavailable to gracefully handle optional builds
-        subprocess.run(["sudo", "dnf", "install", "-y", "--skip-unavailable"] + fedora_packages, check=True)
+        # In Fedora 41+, tuned-ppd provides powerprofilesctl and conflicts with power-profiles-daemon
+        if not shutil.which("powerprofilesctl"):
+            fedora_packages.append("power-profiles-daemon")
+
+        # Install packages with flags to gracefully handle optional builds and conflicts
+        subprocess.run(["sudo", "dnf", "install", "-y", "--skip-unavailable", "--skip-broken"] + fedora_packages, check=True)
 
     else:
         print(f"Warning: Distribution '{distro}' not recognized automatically. Please install dependencies manually.")
