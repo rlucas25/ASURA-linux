@@ -42,10 +42,20 @@ def detect_distro() -> str:
 
 
 def install_dependencies():
-    arch = ["quickshell", "hyprland", "kitty", "fastfetch", "flameshot", "micro", "starship", "btop", "fish"]
-    fedora = ["quickshell", "hyprland", "kitty", "fastfetch", "flameshot", "micro", "starship", "btop", "fish"]
+    arch = [
+    "quickshell", "hyprland", "awww", "hypridle",
+    "qt6-declarative", "qt6-5compat",
+    "wireplumber", "libpulse", "cava", "wf-recorder", "sound-theme-freedesktop",
+    "networkmanager", "bluez-utils", "brightnessctl", "power-profiles-daemon",
+    "wl-clipboard", "wtype", "zenity", "nwg-look", "xdg-utils", "jq", "ffmpeg",
+    "python-pillow", "python-numpy"
+]
 
-    distro = detect_distro()
+    fedora = ["quickshell", "hyprland", "awww", "hypridle",
+    "qt6-qtdeclarative", "qt6-qt5compat", "cava", "zenity", "wl-clipboard","wtype", "nwg-look", "xdg-utils","jq", "ffmpeg",
+    "python-pillow", "python-numpy", "kitty", "fastfetch", "flameshot", "micro", "starship", "btop", "fish"]
+
+    distro = detect_distro()   
     if distro == "Arch":
         print("Installing dependencies for Arch Linux...")
         subprocess.run(["sudo", "pacman", "-S", "--needed"] + arch, check=True)
