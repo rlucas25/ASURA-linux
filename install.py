@@ -11,6 +11,7 @@ home = Path.home()
 dot_dir = home / ".config"
 asura_dir = home / ".local/share/asura"
 config_dir = home / ".config/asura"
+bin_dir = home / ".local/bin"
 hypr_dot = dot_dir / "hypr"
 
 # Installer root directory
@@ -70,6 +71,37 @@ def copy_tree(src: Path, dst: Path):
                 shutil.copy2(item, target)
 
 
+def setup_fedora_external_repos():
+    """Configure official repositories for VS Code and Vivaldi on Fedora."""
+    # Official Microsoft VS Code repository
+    vscode_repo = Path("/etc/yum.repos.d/vscode.repo")
+    if not vscode_repo.exists():
+        print("Configuring official Microsoft VS Code repository...")
+        vscode_content = """[code]
+name=Visual Studio Code
+baseurl=https://packages.microsoft.com/yumrepos/vscode
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+"""
+        subprocess.run(["sudo", "rpm", "--import", "https://packages.microsoft.com/keys/microsoft.asc"], check=False)
+        subprocess.run(["sudo", "tee", str(vscode_repo)], input=vscode_content, text=True, capture_output=True, check=False)
+
+    # Official Vivaldi repository
+    vivaldi_repo = Path("/etc/yum.repos.d/vivaldi.repo")
+    if not vivaldi_repo.exists():
+        print("Configuring official Vivaldi repository...")
+        vivaldi_content = """[vivaldi]
+name=vivaldi
+baseurl=https://repo.vivaldi.com/archive/rpm/x86_64
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.vivaldi.com/archive/linux_signing_key.pub
+"""
+        subprocess.run(["sudo", "rpm", "--import", "https://repo.vivaldi.com/archive/linux_signing_key.pub"], check=False)
+        subprocess.run(["sudo", "tee", str(vivaldi_repo)], input=vivaldi_content, text=True, capture_output=True, check=False)
+
+
 def install_dependencies():
     distro = detect_distro()
 
@@ -77,13 +109,15 @@ def install_dependencies():
         print("Installing dependencies for Arch / CachyOS Linux...")
         arch_official = [
             "hyprland", "hypridle", "kitty", "fastfetch", "flameshot", "micro", "starship", "btop", "fish",
+            "nautilus", "pavucontrol", "vivaldi",
             "qt6-declarative", "qt6-5compat",
             "wireplumber", "libpulse", "sound-theme-freedesktop",
             "networkmanager", "bluez-utils", "brightnessctl", "power-profiles-daemon",
             "wl-clipboard", "wtype", "zenity", "xdg-utils", "jq", "ffmpeg",
             "python-pillow", "python-numpy"
         ]
-        arch_aur = ["quickshell", "awww", "cava", "nwg-look"]
+        # Official VS Code (proprietary Microsoft build) and Quickshell from AUR
+        arch_aur = ["quickshell", "awww", "cava", "nwg-look", "visual-studio-code-bin"]
 
         # Install official packages
         subprocess.run(["sudo", "pacman", "-S", "--needed", "--noconfirm"] + arch_official, check=True)
@@ -110,8 +144,12 @@ def install_dependencies():
         for copr in coprs:
             enable_fedora_copr(copr)
 
+        # Setup official third-party repos for VS Code & Vivaldi
+        setup_fedora_external_repos()
+
         fedora_packages = [
             "hyprland", "hypridle", "quickshell", "awww", "starship",
+            "nautilus", "pavucontrol", "vivaldi-stable", "code",
             "qt6-qtdeclarative", "qt6-qt5compat",
             "wireplumber", "pulseaudio-utils", "sound-theme-freedesktop",
             "NetworkManager", "bluez", "brightnessctl",
@@ -178,6 +216,20 @@ def main():
 
         hypr_dot.symlink_to(target_hypr, target_is_directory=True)
         print(f"Symlink created: {hypr_dot} -> {target_hypr}")
+
+    # Install CLI command to ~/.local/bin/asura
+    cli_source = asura_dir / "cli" / "main.py"
+    if cli_source.exists():
+        bin_dir.mkdir(parents=True, exist_ok=True)
+        cli_source.chmod(0o755)
+        cli_target = bin_dir / "asura"
+        if cli_target.is_symlink() or cli_target.is_file():
+            cli_target.unlink()
+        elif cli_target.is_dir():
+            shutil.rmtree(cli_target)
+
+        cli_target.symlink_to(cli_source)
+        print(f"CLI installed: {cli_target} -> {cli_source}")
 
 
 if __name__ == "__main__":
