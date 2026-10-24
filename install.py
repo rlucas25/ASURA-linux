@@ -10,7 +10,7 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 # Base directories (XDG standard)
 home = Path.home()
@@ -231,7 +231,7 @@ def install_dependencies():
 
         fedora_packages = [
             # Base Hyprland & Shell
-            "hyprland", "hypridle", "quickshell", "awww", "swww", "starship",
+            "hyprland", "hypridle", "hyprpolkitagent", "quickshell", "awww", "swww", "starship",
             "nautilus", "pavucontrol", "vivaldi-stable", "code",
             # Fish Shell Tools
             "bat", "zoxide", "eza", "fzf", "fd-find",
@@ -430,8 +430,16 @@ def setup_micro_plugins():
 
 
 def setup_fish_environment():
-    """Ensure fish shell commands and tool symlinks (like fd, awww/swww on Fedora) are compatible."""
+    """Ensure fish shell commands, ~/.local/bin in PATH, and tool symlinks (like fd, awww/swww on Fedora) are compatible."""
     bin_dir.mkdir(parents=True, exist_ok=True)
+
+    # Ensure ~/.local/bin is in fish universal PATH
+    if shutil.which("fish"):
+        try:
+            subprocess.run(["fish", "-c", "fish_add_path -U $HOME/.local/bin"], capture_output=True, check=False)
+            print("  ✓ Added ~/.local/bin to fish universal path.")
+        except Exception:
+            pass
 
     # fd -> fd-find compatibility
     if not shutil.which("fd") and shutil.which("fd-find"):
@@ -504,7 +512,22 @@ def main():
     if not asura_shell_src.exists():
         asura_shell_src = script_dir / "Asura-Shell"
 
-    if asura_shell_src.exists():
+    # Ensure Asura-shell content is actually present (e.g. freshly cloned git repo without --recurse-submodules)
+    if not (asura_shell_src / "cli" / "main.py").exists():
+        print("\nNotice: Asura-shell submodule is not initialized or empty. Fetching files...")
+        if shutil.which("git"):
+            try:
+                if (script_dir / ".git").exists():
+                    subprocess.run(["git", "submodule", "update", "--init", "--recursive"], cwd=script_dir, check=False)
+
+                if not (asura_shell_src / "cli" / "main.py").exists():
+                    if asura_shell_src.exists():
+                        shutil.rmtree(asura_shell_src)
+                    subprocess.run(["git", "clone", "--recurse-submodules", "https://github.com/rlucas25/Asura-shell.git", str(asura_shell_src)], check=False)
+            except Exception as e:
+                print(f"Warning: Could not fetch Asura-shell submodule: {e}")
+
+    if asura_shell_src.exists() and (asura_shell_src / "cli" / "main.py").exists():
         asura_dir.parent.mkdir(parents=True, exist_ok=True)
         copy_tree(asura_shell_src, asura_dir)
         print(f"Shell files copied to: {asura_dir}")

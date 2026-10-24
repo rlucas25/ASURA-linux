@@ -6,10 +6,17 @@ if status is-interactive
     set -gx VISUAL micro
 
     fastfetch
-    alias i 'sudo pacman -S'
-    alias r 'sudo pacman -R'
-    alias s 'sudo pacman -Q'
-    alias up 'sudo pacman -Syu'
+    if command -v pacman >/dev/null 2>&1
+        alias i 'sudo pacman -S'
+        alias r 'sudo pacman -R'
+        alias s 'sudo pacman -Q'
+        alias up 'sudo pacman -Syu'
+    else if command -v dnf >/dev/null 2>&1
+        alias i 'sudo dnf install'
+        alias r 'sudo dnf remove'
+        alias s 'dnf list installed'
+        alias up 'sudo dnf upgrade'
+    end
     alias cd 'z'
     alias cat 'bat'
     alias rblue 'systemctl --user restart wireplumber pipewire pipewire-pulse && sudo systemctl restart bluetooth'
@@ -42,6 +49,8 @@ if status is-interactive
     end
 
 end
+
+fish_add_path "$HOME/.local/bin"
 
 if test -d "$HOME/.spicetify"
     fish_add_path "$HOME/.spicetify"
