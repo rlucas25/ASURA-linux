@@ -1,9 +1,0 @@
-sudo dnf copr enable -y solopasha/hyprland
-sudo dnf copr enable -y tofik/matugen
-sudo dnf copr enable -y outfoxxed/quickshell
-
-sudo dnf install -y \
-    hyprland hypridle xdg-desktop-portal-hyprland \
-    kitty fish starship btop micro nautilus \
-    fastfetch flameshot brightnessctl power-profiles-daemon \
-    matugen quickshell

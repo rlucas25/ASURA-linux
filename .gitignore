@@ -1,0 +1,10 @@
+**/.qmlls.ini
+
+PLAN
+
+.vscode/
+.agents/
+
+
+__pycache__/
+*.pyc
