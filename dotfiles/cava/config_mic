@@ -1,0 +1,23 @@
+[general]
+bars = 20
+framerate = 60
+autosens = 1
+sensitivity = 100
+channels = mono
+
+[input]
+method = pulse
+source = recording_combined.monitor
+
+[output]
+method = raw
+raw_target = /dev/stdout
+data_format = ascii
+ascii_max_range = 100000
+bar_delimiter = 59
+
+[smoothing]
+integral = 80
+gravity = 100
+waves = 20
+noise_reduction = 15

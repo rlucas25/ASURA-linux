@@ -1,12 +1,12 @@
 {
 	"$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
 	"logo": {
-		"source": "~/.config/fastfetch/logo/kanji.txt",
+		"source": "~/.config/fastfetch/logo/asura.txt",
 		"padding": {
 			"top": 1,
 			"left": 2,
 			"color": {
-				"1": "#c2c1ff"
+				"1": "#B1CFA3"
 			}
 		}
 	},
@@ -17,96 +17,96 @@
 		{
 			"type": "title",
 			"key": "ホスト",
-			"keyColor": "#c2c1ff"
+			"keyColor": "#B1CFA3"
 		},
 		"break",
 		{
 			"type": "os",
 			"key": "╭─󱗆",
-			"keyColor": "#f5b2e0"
+			"keyColor": "#FFFBD4"
 		},
 		{
 			"type": "kernel",
 			"key": "├─",
 			"format": "{1} {2}",
-			"keyColor": "#f5b2e0"
+			"keyColor": "#FFFBD4"
 		},
 		{
 			"type": "packages",
 			"key": "├─󰮯",
-			"keyColor": "#f5b2e0"
+			"keyColor": "#FFFBD4"
 		},
 		{
 			"type": "de",
 			"key": "├─",
-			"keyColor": "#f5b2e0"
+			"keyColor": "#FFFBD4"
 		},
 		{
 			"type": "wm",
 			"key": "├─",
-			"keyColor": "#f5b2e0"
+			"keyColor": "#FFFBD4"
 		},
 		{
 			"type": "theme",
 			"key": "├─󰉼",
-			"keyColor": "#f5b2e0"
+			"keyColor": "#FFFBD4"
 		},
 		{
 			"type": "icons",
 			"key": "╰─󰀻",
-			"keyColor": "#f5b2e0"
+			"keyColor": "#FFFBD4"
 		},
 		"break",
 		{
 			"type": "disk",
 			"key": "╭─",
-			"keyColor": "#c6c4e0"
+			"keyColor": "#BBCBB1"
 		},
 		{
 			"type": "terminal",
 			"key": "├─",
-			"keyColor": "#c6c4e0"
+			"keyColor": "#BBCBB1"
 		},
 		{
 			"type": "terminalfont",
 			"key": "├─",
-			"keyColor": "#c6c4e0"
+			"keyColor": "#BBCBB1"
 		},
 		{
 			"type": "shell",
 			"key": "╰─",
-			"keyColor": "#c6c4e0"
+			"keyColor": "#BBCBB1"
 		},
 		"break",
 		{
 			"type": "host",
 			"key": "╭─",
-			"keyColor": "#c2c1ff"
+			"keyColor": "#BFDDB0"
 		},
 		{
 			"type": "cpu",
 			"key": "├─󰍛",
-			"keyColor": "#c2c1ff"
+			"keyColor": "#BFDDB0"
 		},
 		{
 			"type": "gpu",
 			"key": "├─󰘚",
-			"keyColor": "#c2c1ff"
+			"keyColor": "#BFDDB0"
 		},
 		{
 			"type": "display",
 			"key": "├─󰍹",
-			"keyColor": "#c2c1ff"
+			"keyColor": "#BFDDB0"
 		},
 		{
 			"type": "memory",
 			"key": "├─󰑭",
-			"keyColor": "#c2c1ff"
+			"keyColor": "#BFDDB0"
 		},
 		{
 			"type": "uptime",
 			"key": "╰─󰅐",
-			"keyColor": "#c2c1ff"
+			"keyColor": "#BFDDB0"
 		},
 		"break",
 		{
