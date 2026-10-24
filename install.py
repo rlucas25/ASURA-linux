@@ -50,13 +50,43 @@ def detect_distro() -> str:
     return "unknown"
 
 
-def enable_fedora_copr(copr: str):
-    """Enable a Fedora COPR repository with rawhide chroot fallback."""
+def enable_fedora_copr(copr: str, fallback_chroot: str = "fedora-rawhide-x86_64"):
+    """Enable a Fedora COPR repository with DNF5, DNF4, and direct repo fallback."""
     print(f"Enabling COPR: {copr}...")
     res = subprocess.run(["sudo", "dnf", "copr", "enable", "-y", copr], capture_output=True, text=True)
-    if res.returncode != 0 and ("fedora-rawhide-x86_64" in res.stdout or "fedora-rawhide-x86_64" in res.stderr or "Chroot not found" in res.stdout or "Chroot not found" in res.stderr):
-        print(f"Retrying COPR {copr} with rawhide chroot...")
-        subprocess.run(["sudo", "dnf", "copr", "enable", "-y", "--chroot", "fedora-rawhide-x86_64", copr], check=False)
+    if res.returncode == 0:
+        return
+
+    print(f"Retrying COPR {copr} with chroot {fallback_chroot}...")
+    # DNF5 (Fedora 41+): chroot is a positional argument
+    res_dnf5 = subprocess.run(["sudo", "dnf", "copr", "enable", "-y", copr, fallback_chroot], capture_output=True, text=True)
+    if res_dnf5.returncode == 0:
+        return
+
+    # DNF4 (older Fedora): chroot is --chroot flag
+    res_dnf4 = subprocess.run(["sudo", "dnf", "copr", "enable", "-y", "--chroot", fallback_chroot, copr], capture_output=True, text=True)
+    if res_dnf4.returncode == 0:
+        return
+
+    # Direct .repo file fallback
+    try:
+        owner, project = copr.split("/", 1)
+        repo_path = Path("/etc/yum.repos.d") / f"_copr:copr.fedorainfracloud.org:{owner}:{project}.repo"
+        repo_content = f"""[copr:copr.fedorainfracloud.org:{owner}:{project}]
+name=Copr repo for {project} owned by {owner}
+baseurl=https://download.copr.fedorainfracloud.org/results/{owner}/{project}/{fallback_chroot}/
+type=rpm-md
+skip_if_unavailable=True
+gpgcheck=1
+gpgkey=https://download.copr.fedorainfracloud.org/results/{owner}/{project}/pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1
+"""
+        print(f"Configuring COPR repository file directly at {repo_path}...")
+        subprocess.run(["sudo", "tee", str(repo_path)], input=repo_content, text=True, capture_output=True, check=False)
+    except Exception as e:
+        print(f"Notice: Could not configure COPR repo file for {copr}: {e}")
 
 
 def copy_tree(src: Path, dst: Path):
@@ -185,6 +215,7 @@ def install_dependencies():
     elif distro == "Fedora":
         print("Configuring and installing dependencies for Fedora...")
         coprs = [
+            "sdegler/hyprland",
             "solopasha/hyprland",
             "avengemedia/danklinux",
             "atim/starship",
@@ -200,7 +231,7 @@ def install_dependencies():
 
         fedora_packages = [
             # Base Hyprland & Shell
-            "hyprland", "hypridle", "quickshell", "awww", "starship",
+            "hyprland", "hypridle", "quickshell", "awww", "swww", "starship",
             "nautilus", "pavucontrol", "vivaldi-stable", "code",
             # Fish Shell Tools
             "bat", "zoxide", "eza", "fzf", "fd-find",
@@ -223,6 +254,16 @@ def install_dependencies():
 
         # Install packages with flags to gracefully handle optional builds and conflicts
         subprocess.run(["sudo", "dnf", "install", "-y", "--skip-unavailable", "--skip-broken"] + fedora_packages, check=True)
+
+        # Verify Hyprland installation
+        if not shutil.which("hyprland"):
+            print("\n[!] Hyprland binary was not detected after general package installation.")
+            print("    Attempting direct installation of hyprland and hypridle...")
+            res_hypr = subprocess.run(["sudo", "dnf", "install", "-y", "hyprland", "hypridle"], check=False)
+            if res_hypr.returncode != 0:
+                print("WARNING: Hyprland package installation failed on Fedora! Check active COPR repositories.", file=sys.stderr)
+            else:
+                print("✓ Hyprland installed successfully.")
 
         # Enable standard Fedora daemons (UPower, BlueZ, NetworkManager, TuneD/PPD)
         setup_fedora_services()
@@ -389,14 +430,29 @@ def setup_micro_plugins():
 
 
 def setup_fish_environment():
-    """Ensure fish shell commands (like fd on Fedora) are compatible."""
+    """Ensure fish shell commands and tool symlinks (like fd, awww/swww on Fedora) are compatible."""
+    bin_dir.mkdir(parents=True, exist_ok=True)
+
+    # fd -> fd-find compatibility
     if not shutil.which("fd") and shutil.which("fd-find"):
-        bin_dir.mkdir(parents=True, exist_ok=True)
         fd_symlink = bin_dir / "fd"
         if not fd_symlink.exists():
             fd_target = Path(shutil.which("fd-find"))
             fd_symlink.symlink_to(fd_target)
             print(f"  ✓ Created compatibility symlink: {fd_symlink} -> {fd_target}")
+
+    # awww -> swww compatibility on Fedora
+    if not shutil.which("awww") and shutil.which("swww"):
+        awww_symlink = bin_dir / "awww"
+        if not awww_symlink.exists():
+            awww_symlink.symlink_to(Path(shutil.which("swww")))
+            print(f"  ✓ Created compatibility symlink: {awww_symlink} -> swww")
+
+    if not shutil.which("awww-daemon") and shutil.which("swww-daemon"):
+        daemon_symlink = bin_dir / "awww-daemon"
+        if not daemon_symlink.exists():
+            daemon_symlink.symlink_to(Path(shutil.which("swww-daemon")))
+            print(f"  ✓ Created compatibility symlink: {daemon_symlink} -> swww-daemon")
 
 
 def main():
