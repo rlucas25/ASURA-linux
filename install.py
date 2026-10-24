@@ -619,6 +619,18 @@ def main():
         hypr_dot.symlink_to(target_hypr, target_is_directory=True)
         print(f"Symlink created: {hypr_dot} -> {target_hypr}")
 
+    # Symlink ~/.config/quickshell -> ~/.local/share/asura/Shell/quickshell
+    target_quickshell = asura_dir / "Shell" / "quickshell"
+    quickshell_dot = dot_dir / "quickshell"
+    if target_quickshell.exists():
+        if quickshell_dot.is_symlink() or quickshell_dot.is_file():
+            quickshell_dot.unlink()
+        elif quickshell_dot.is_dir():
+            shutil.rmtree(quickshell_dot)
+
+        quickshell_dot.symlink_to(target_quickshell, target_is_directory=True)
+        print(f"Symlink created: {quickshell_dot} -> {target_quickshell}")
+
     # Install CLI command to ~/.local/bin/asura
     cli_source = asura_dir / "cli" / "main.py"
     if cli_source.exists():
