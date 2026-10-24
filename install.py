@@ -470,7 +470,7 @@ def setup_fish_environment():
 
 
 def setup_asura_config():
-    """Ensure ~/.config/asura directory exists with default hypr-vars.lua and hypr-user.lua."""
+    """Ensure ~/.config/asura directory exists with default hypr-vars.lua, hypr-user.lua, and config.json with auto colors."""
     config_dir.mkdir(parents=True, exist_ok=True)
     hypr_vars = config_dir / "hypr-vars.lua"
     if not hypr_vars.exists():
@@ -481,6 +481,62 @@ def setup_asura_config():
     if not hypr_user.exists():
         hypr_user.write_text("-- Custom user Hyprland configurations\n")
         print(f"  ✓ Created default user config file: {hypr_user}")
+
+    # Default wallpaper path
+    default_wallpaper_path = asura_dir / "Shell/quickshell/Assets/default_wallpaper.jpg"
+
+    # Copy default wallpaper to ~/Pictures/Wallpapers as well for convenient selection
+    wallpapers_folder = home / "Pictures/Wallpapers"
+    wallpapers_folder.mkdir(parents=True, exist_ok=True)
+    if default_wallpaper_path.exists():
+        dest_wall = wallpapers_folder / "default_wallpaper.jpg"
+        if not dest_wall.exists():
+            try:
+                shutil.copy2(default_wallpaper_path, dest_wall)
+                print(f"  ✓ Copied default wallpaper to: {dest_wall}")
+            except Exception:
+                pass
+
+    # Ensure default config.json has colorsAutoGenerate = True
+    config_file = config_dir / "config.json"
+    if not config_file.exists():
+        import json
+        initial_cfg = {
+            "colorsAutoGenerate": True,
+            "isDarkMode": True,
+            "scheme": "tonal-spot",
+            "wallpaper": str(default_wallpaper_path)
+        }
+        config_file.write_text(json.dumps(initial_cfg, indent=2) + "\n")
+        print(f"  ✓ Created default Asura config with auto colors enabled: {config_file}")
+
+    # Set up Python venv for dynamic color generation (materialyoucolor)
+    state_venv = home / ".local/state/quickshell/.venv"
+    if not (state_venv / "bin/python").exists() and not (state_venv / "bin/python3").exists():
+        print("  -> Setting up Python environment for dynamic color generation...")
+        try:
+            state_venv.parent.mkdir(parents=True, exist_ok=True)
+            subprocess.run([sys.executable, "-m", "venv", str(state_venv)], check=False)
+            venv_pip = state_venv / "bin/pip"
+            subprocess.run([str(venv_pip), "install", "materialyoucolor", "pillow", "numpy"], capture_output=True, check=False)
+            print("  ✓ Python environment for dynamic colors initialized.")
+        except Exception as e:
+            print(f"  Notice: Python venv setup: {e}")
+
+    # Generate initial theme colors from default wallpaper
+    switchwall_script = asura_dir / "Shell/quickshell/scripts/colors/switchwall.sh"
+    if switchwall_script.exists() and default_wallpaper_path.exists():
+        try:
+            print("  -> Generating initial theme colors from default wallpaper...")
+            subprocess.run([
+                "bash", str(switchwall_script),
+                "--path", str(default_wallpaper_path),
+                "--mode", "dark",
+                "--scheme", "tonal-spot"
+            ], capture_output=True, check=False)
+            print("  ✓ Initial theme colors generated successfully.")
+        except Exception as e:
+            print(f"  Notice: Initial dynamic color generation deferred: {e}")
 
 
 def main():
