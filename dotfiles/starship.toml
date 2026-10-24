@@ -1,7 +1,84 @@
-palette = "asura"
-#[character]
-#success_symbol = "[λ ](bold fg:dir_fg)"
-#error_symbol = "[λ ](bold fg:crimson)"
+format = '''
+$directory$git_branch$rust$python
+$character'''
+
+palette = 'asura'
+
+[palettes.asura]
+mustard = '#af8700'
+color1 = '#97ccf9'
+color2 = '#003450'
+color3 = '#c1c7ce'
+color4 = '#1c2024'
+color5 = '#003450'
+color6 = '#101417'
+color7 = '#101417'
+color8 = '#97ccf9'
+color9 = '#d0bfe7'
+
+blue      = '#97ccf9'
+red       = '#ffb4ab'
+green     = '#d0bfe7'
+yellow    = '#b8c8d9'
+cyan      = '#97ccf9'
+magenta   = '#d0bfe7'
+white     = '#e0e3e8'
+black     = '#101417'
+
+rosewater = '#d0bfe7'
+flamingo  = '#ffb4ab'
+pink      = '#d0bfe7'
+mauve     = '#4d4162'
+maroon    = '#93000a'
+peach     = '#b8c8d9'
+teal      = '#394856'
+sky       = '#97ccf9'
+sapphire  = '#97ccf9'
+lavender  = '#b8c8d9'
+
+text      = '#e0e3e8'
+subtext1  = '#c1c7ce'
+subtext0  = '#8b9198'
+
+overlay2  = '#8b9198'
+overlay1  = '#41474d'
+overlay0  = '#313539'
+surface2  = '#262a2e'
+surface1  = '#1c2024'
+surface0  = '#181c20'
+base      = '#101417'
+mantle    = '#101417'
+crust     = '#0b0f12'
+
+[character]
+success_symbol = "[❯](color9 bold)"
+error_symbol = "[❯](@{error})"
+vicmd_symbol = "[🞈](#f9e2af)"
+
+
+[directory.substitutions]
+"Documents" = "󰈙 Documents"
+"Downloads" = " Downloads"
+"Music" = " Music"
+"Pictures" = "  Pictures"
+
+[battery]
+full_symbol = "󰁹 "
+charging_symbol = "󰂄 "
+discharging_symbol = "󰂃 "
+unknown_symbol = "󰂑 "
+empty_symbol = "󰂎 "
+
+[time]
+format = "[](fg:color8 bg:color4)[ ](bg:color8 fg:color5)[](fg:color8 bg:color4)[(bg:color8 fg:color5) $time](fg:color3 bg:color4)[](fg:color4) "
+disabled = false
+time_format = "%R"
+
+[python]
+format = "[](fg:color8 bg:color4)[${symbol}${version}](bg:color8 fg:color5)[](fg:color8 bg:color4)[(bg:color8 fg:color5)( ${virtualenv})](fg:color3 bg:color4)[](fg:color4) "
+symbol = '🐍'
+pyenv_prefix = 'venv'
+
 
 [aws]
 symbol = "  "
@@ -11,6 +88,9 @@ symbol = " "
 
 [c]
 symbol = " "
+
+[cpp]
+symbol = " "
 
 [cmake]
 symbol = " "
@@ -23,9 +103,6 @@ symbol = " "
 
 [dart]
 symbol = " "
-
-[directory]
-read_only = " 󰌾"
 
 [docker_context]
 symbol = " "
@@ -40,9 +117,6 @@ symbol = " "
 symbol = " "
 
 [fossil_branch]
-symbol = " "
-
-[git_branch]
 symbol = " "
 
 [git_commit]
@@ -155,9 +229,6 @@ symbol = " "
 [pijul_channel]
 symbol = " "
 
-[python]
-symbol = " "
-
 [rlang]
 symbol = "󰟔 "
 
@@ -179,41 +250,9 @@ symbol = " "
 [gradle]
 symbol = " "
 
-[palettes.asura]
-# Standard colors
-blue      = "#8a85ad"
-red       = "#fd4663"
-green     = "#8bb9c1"
-yellow    = "#b3877f"
-cyan      = "#d0b4af"
-magenta   = "#accdd3"
-white     = "#f2f3f3"
-black     = "#252c2d"
+[cobol]
+symbol = " "
 
-# Extended palette (Catppuccin-compatible names)
-rosewater = "#b3877f"
-flamingo  = "#fd4663"
-pink      = "#accdd3"
-mauve     = "#accdd3"
-maroon    = "#fd4663"
-peach     = "#b3877f"
-teal      = "#d0b4af"
-sky       = "#d0b4af"
-sapphire  = "#8a85ad"
-lavender  = "#accdd3"
 
-# Text shades
-text      = "#f2f3f3"
-subtext1  = "#f2f3f3"
-subtext0  = "#5f6d6f"
-
-# Surface shades
-overlay2  = "#5f6d6f"
-overlay1  = "#5f6d6f"
-overlay0  = "#252c2d"
-surface2  = "#252c2d"
-surface1  = "#252c2d"
-surface0  = "#1c2122"
-base      = "#1c2122"
-mantle    = "#1c2122"
-crust     = "#1c2122"
+[container]
+symbol = " "
