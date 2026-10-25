@@ -191,13 +191,14 @@ def install_dependencies():
             # Hyprland session helpers & build tools for hyprpm
             "cliphist", "gammastep", "trash-cli", "gnome-keyring", "polkit-gnome", "cmake", "cpio", "gcc", "pkgconf", "meson", "hyprwayland-scanner",
             # System, Media & Qt6
-            "qt6-declarative", "qt6-5compat",
+            "qt6-declarative", "qt6-5compat", "qt6-wayland",
+            "xdg-desktop-portal", "xdg-desktop-portal-hyprland", "xdg-desktop-portal-gtk",
             "wireplumber", "libpulse", "sound-theme-freedesktop",
             "networkmanager", "bluez-utils", "brightnessctl", "power-profiles-daemon",
             "wl-clipboard", "wtype", "zenity", "xdg-utils", "jq", "ffmpeg",
             "python-pillow", "python-numpy",
-            # Screen recording & notifications
-            "wf-recorder", "slurp", "libnotify",
+            # Screen recording, screenshots & notifications
+            "wf-recorder", "grim", "slurp", "libnotify",
             # Font & archive tools
             "fontconfig", "git", "tar", "xz",
             # GTK widget theme & core utilities
@@ -247,14 +248,15 @@ def install_dependencies():
             # Hyprland session helpers & build tools for hyprpm
             "cliphist", "gammastep", "trash-cli", "gnome-keyring", "cmake", "cpio", "gcc", "gcc-c++", "hyprland-devel", "pkgconf-pkg-config", "meson", "hyprwayland-scanner",
             # System, Media & Qt6
-            "qt6-qtdeclarative", "qt6-qt5compat",
+            "qt6-qtdeclarative", "qt6-qt5compat", "qt6-qtwayland",
+            "xdg-desktop-portal", "xdg-desktop-portal-hyprland", "xdg-desktop-portal-gtk",
             "wireplumber", "pulseaudio-utils", "sound-theme-freedesktop",
             "NetworkManager", "bluez", "brightnessctl",
             "wl-clipboard", "wtype", "zenity", "nwg-look", "xdg-utils", "jq", "ffmpeg",
             "cava", "kitty", "fastfetch", "flameshot", "micro", "btop", "fish",
             "python3-pillow", "python3-numpy",
-            # Screen recording & notifications
-            "wf-recorder", "slurp", "libnotify",
+            # Screen recording, screenshots & notifications
+            "wf-recorder", "grim", "slurp", "libnotify",
             # Font & archive tools
             "fontconfig", "git", "tar", "xz",
             # GTK widget theme & core utilities
@@ -735,6 +737,53 @@ def setup_fish_environment():
             subprocess.run(["sudo", "ln", "-sf", daemon_bin, "/usr/local/bin/awww-daemon"], capture_output=True, check=False)
 
 
+def setup_xdg_portals():
+    """Configure systemd graphical-session target binding and xdg-desktop-portal for Hyprland (required for Flameshot on Fedora)."""
+    systemd_user_dir = dot_dir / "systemd/user"
+    systemd_user_dir.mkdir(parents=True, exist_ok=True)
+
+    # On Fedora, xdg-desktop-portal.service has Requisite=graphical-session.target,
+    # and graphical-session.target has RefuseManualStart=yes.
+    # Creating hyprland-session.target with BindsTo=graphical-session.target allows
+    # standard Hyprland sessions to cleanly activate graphical-session.target.
+    hypr_target = systemd_user_dir / "hyprland-session.target"
+    hypr_target_content = """[Unit]
+Description=Hyprland compositor session
+Documentation=man:systemd.special(7)
+BindsTo=graphical-session.target
+Wants=graphical-session-pre.target
+After=graphical-session-pre.target
+"""
+    hypr_target.write_text(hypr_target_content)
+    print(f"  ✓ Configured systemd user target: {hypr_target}")
+
+    portal_conf_dir = dot_dir / "xdg-desktop-portal"
+    portal_conf_dir.mkdir(parents=True, exist_ok=True)
+    hypr_portal_conf = portal_conf_dir / "hyprland-portals.conf"
+    portal_conf_content = """[preferred]
+default=hyprland;gtk
+org.freedesktop.impl.portal.Screenshot=hyprland
+org.freedesktop.impl.portal.ScreenCast=hyprland
+"""
+    hypr_portal_conf.write_text(portal_conf_content)
+    print(f"  ✓ Configured XDG desktop portal preferences: {hypr_portal_conf}")
+
+    if shutil.which("systemctl"):
+        subprocess.run(["systemctl", "--user", "daemon-reload"], capture_output=True, check=False)
+        if os.environ.get("WAYLAND_DISPLAY") or os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"):
+            if shutil.which("dbus-update-activation-environment"):
+                subprocess.run([
+                    "dbus-update-activation-environment", "--systemd",
+                    "WAYLAND_DISPLAY", "XDG_CURRENT_DESKTOP", "XDG_SESSION_TYPE", "XDG_SESSION_DESKTOP"
+                ], capture_output=True, check=False)
+            subprocess.run(["systemctl", "--user", "start", "hyprland-session.target"], capture_output=True, check=False)
+            subprocess.run([
+                "systemctl", "--user", "restart",
+                "xdg-desktop-portal-hyprland", "xdg-desktop-portal-gtk", "xdg-desktop-portal"
+            ], capture_output=True, check=False)
+            print("  ✓ Activated graphical-session.target and restarted xdg-desktop-portal services.")
+
+
 def setup_asura_config():
     """Ensure ~/.config/asura directory exists with default hypr-vars.lua, hypr-user.lua, and config.json with auto colors."""
     config_dir.mkdir(parents=True, exist_ok=True)
@@ -766,7 +815,18 @@ def setup_asura_config():
         except Exception:
             pass
 
-    # Ensure default recordings directory exists
+    # Ensure default screenshots and recordings directories exist
+    screenshots_dir = home / "Pictures/Screenshots"
+    screenshots_dir.mkdir(parents=True, exist_ok=True)
+    flameshot_ini = dot_dir / "flameshot/flameshot.ini"
+    if flameshot_ini.exists():
+        try:
+            ini_text = flameshot_ini.read_text()
+            if "/home/lucas/" in ini_text and str(home) != "/home/lucas":
+                flameshot_ini.write_text(ini_text.replace("/home/lucas/", f"{home}/"))
+        except Exception:
+            pass
+
     recordings_dir = home / "Videos/Recordings"
     recordings_dir.mkdir(parents=True, exist_ok=True)
 
@@ -830,14 +890,21 @@ def setup_asura_config():
 
     # If running inside an active Wayland / Hyprland session, immediately set wallpaper via awww/swww
     if os.environ.get("WAYLAND_DISPLAY") or os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"):
-        awww_bin = shutil.which("awww") or shutil.which("swww")
-        daemon_bin = shutil.which("awww-daemon") or shutil.which("swww-daemon")
+        path_with_local = f"{bin_dir}:/usr/local/bin:{os.environ.get('PATH', '')}"
+        awww_bin = shutil.which("awww", path=path_with_local) or shutil.which("swww", path=path_with_local)
+        daemon_bin = shutil.which("awww-daemon", path=path_with_local) or shutil.which("swww-daemon", path=path_with_local)
         if awww_bin:
             try:
-                if daemon_bin and subprocess.run(["pgrep", "-x", Path(daemon_bin).name], capture_output=True).returncode != 0:
+                daemon_running = (
+                    subprocess.run(["pgrep", "-x", "awww-daemon"], capture_output=True).returncode == 0
+                    or subprocess.run(["pgrep", "-x", "swww-daemon"], capture_output=True).returncode == 0
+                )
+                if daemon_bin and not daemon_running:
                     subprocess.Popen([daemon_bin], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    import time
-                    time.sleep(0.3)
+                for _ in range(30):
+                    if subprocess.run([awww_bin, "query"], capture_output=True).returncode == 0:
+                        break
+                    time.sleep(0.1)
                 target_wall = wallpapers_folder / "default_wallpaper.jpg"
                 if not target_wall.exists():
                     target_wall = default_wallpaper_path
@@ -999,10 +1066,11 @@ def main():
 
     # Setup plugins & environment integrations
     print("\nVerifying plugins and environment integrations...")
+    setup_fish_environment()
+    setup_xdg_portals()
     setup_asura_config()
     setup_micro_plugins()
     setup_hyprland_plugins()
-    setup_fish_environment()
     setup_default_apps()
 
     print("\n" + "=" * 56)
