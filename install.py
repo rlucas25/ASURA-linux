@@ -182,7 +182,7 @@ def install_dependencies():
         print("Installing dependencies for Arch / CachyOS Linux...")
         arch_official = [
             # Base Hyprland & Shell
-            "hyprland", "hypridle", "quickshell", "kitty", "fastfetch", "flameshot", "micro", "starship", "btop", "fish",
+            "hyprland", "hyprpm", "hypridle", "quickshell", "kitty", "fastfetch", "flameshot", "micro", "starship", "btop", "fish",
             "nautilus", "pavucontrol", "vivaldi", "code", "cava", "nwg-look",
             # Fish Shell Tools
             "bat", "zoxide", "eza", "fzf", "fd",
@@ -409,6 +409,7 @@ Inherits=Bibata-Modern-Ice
 def setup_hyprland_plugins():
     """Setup and enable required Hyprland plugins via hyprpm."""
     if not shutil.which("hyprpm"):
+        print("  Notice: 'hyprpm' not found. Skipping Hyprland plugin configuration.")
         return
 
     print("Configuring Hyprland plugins via hyprpm...")
