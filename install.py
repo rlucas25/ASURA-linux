@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -198,7 +199,9 @@ def install_dependencies():
             # Screen recording & notifications
             "wf-recorder", "slurp", "libnotify",
             # Font & archive tools
-            "fontconfig", "git", "tar", "xz"
+            "fontconfig", "git", "tar", "xz",
+            # GTK widget theme & core utilities
+            "adw-gtk-theme", "which"
         ]
         # Proprietary VS Code build and Bibata Cursor from AUR (optional)
         arch_aur = ["visual-studio-code-bin", "bibata-cursor-theme-bin"]
@@ -253,7 +256,9 @@ def install_dependencies():
             # Screen recording & notifications
             "wf-recorder", "slurp", "libnotify",
             # Font & archive tools
-            "fontconfig", "git", "tar", "xz"
+            "fontconfig", "git", "tar", "xz",
+            # GTK widget theme & core utilities
+            "adw-gtk3-theme", "which"
         ]
 
         # In Fedora 41+, tuned-ppd provides powerprofilesctl and conflicts with power-profiles-daemon
@@ -405,6 +410,145 @@ Inherits=Bibata-Modern-Ice
 
     if shutil.which("gsettings"):
         subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "icon-theme", "Conflux"], check=False)
+
+
+def setup_gtk_theme():
+    """Ensure adw-gtk3 widget style/theme is installed and configured."""
+    print("Configuring GTK widget style (adw-gtk3)...")
+    themes_dir = home / ".local/share/themes"
+    themes_dir.mkdir(parents=True, exist_ok=True)
+
+    adw_dark_usr = Path("/usr/share/themes/adw-gtk3-dark")
+    adw_dark_local = themes_dir / "adw-gtk3-dark"
+
+    if adw_dark_usr.exists() or adw_dark_local.exists():
+        print("  ✓ adw-gtk3 widget theme verified.")
+    else:
+        print("  -> Downloading adw-gtk3 widget theme from GitHub releases...")
+        adw_url = "https://github.com/lassekongo83/adw-gtk3/releases/download/v6.5/adw-gtk3v6.5.tar.xz"
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".tar.xz", delete=False) as tmp_file:
+                tmp_path = Path(tmp_file.name)
+                urllib.request.urlretrieve(adw_url, tmp_path)
+                with tarfile.open(tmp_path, "r:xz") as tar:
+                    try:
+                        tar.extractall(path=themes_dir, filter="data")
+                    except TypeError:
+                        tar.extractall(path=themes_dir)
+                tmp_path.unlink()
+            print("  ✓ adw-gtk3 widget theme installed to ~/.local/share/themes.")
+        except Exception as e:
+            print(f"  Notice: Could not download adw-gtk3 widget theme: {e}")
+
+    # Configure GTK theme and dark mode via gsettings
+    if shutil.which("gsettings"):
+        subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", "adw-gtk3-dark"], check=False)
+        subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "color-scheme", "prefer-dark"], check=False)
+        subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "icon-theme", "Conflux"], check=False)
+        subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "cursor-theme", "Bibata-Modern-Ice"], check=False)
+        subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "cursor-size", "24"], check=False)
+        subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "font-name", "Roboto Flex 11"], check=False)
+        print("  ✓ GTK interface preferences configured via gsettings.")
+
+
+def setup_default_apps():
+    """Configure default applications (Terminal, Text Editor, Browser, File Manager)."""
+    print("Configuring default applications...")
+
+    app_dirs = [
+        Path("/usr/share/applications"),
+        Path("/usr/local/share/applications"),
+        home / ".local/share/applications",
+        Path("/var/lib/flatpak/exports/share/applications"),
+    ]
+
+    def find_desktop_file(candidates):
+        for candidate in candidates:
+            for d in app_dirs:
+                if (d / candidate).exists():
+                    return candidate
+            for d in app_dirs:
+                if d.exists():
+                    for f in d.glob(candidate):
+                        return f.name
+        return None
+
+    editor_desktop = find_desktop_file([
+        "code.desktop",
+        "com.microsoft.VSCode.desktop",
+        "visual-studio-code.desktop",
+        "code-oss.desktop",
+        "micro.desktop"
+    ])
+    terminal_desktop = find_desktop_file(["kitty.desktop", "kitty-open.desktop"]) or "kitty.desktop"
+    file_manager_desktop = find_desktop_file(["org.gnome.Nautilus.desktop", "nautilus.desktop"])
+    browser_desktop = find_desktop_file(["vivaldi-stable.desktop", "vivaldi.desktop"])
+
+    if shutil.which("xdg-mime"):
+        if editor_desktop:
+            text_mimes = [
+                "text/plain", "text/markdown", "text/x-python", "text/x-c", "text/x-c++",
+                "text/x-csrc", "text/x-chdr", "text/x-lua", "text/x-shellscript",
+                "application/x-shellscript", "application/json", "application/xml",
+                "text/html", "text/css", "text/javascript", "application/javascript"
+            ]
+            for m in text_mimes:
+                subprocess.run(["xdg-mime", "default", editor_desktop, m], check=False)
+            print(f"  ✓ Default text editor set: {editor_desktop}")
+
+        if file_manager_desktop:
+            subprocess.run(["xdg-mime", "default", file_manager_desktop, "inode/directory"], check=False)
+            subprocess.run(["xdg-mime", "default", file_manager_desktop, "x-scheme-handler/trash"], check=False)
+            print(f"  ✓ Default file manager set: {file_manager_desktop}")
+
+        if browser_desktop:
+            browser_mimes = [
+                "x-scheme-handler/http", "x-scheme-handler/https", "text/html", "application/xhtml+xml"
+            ]
+            for m in browser_mimes:
+                subprocess.run(["xdg-mime", "default", browser_desktop, m], check=False)
+            print(f"  ✓ Default web browser set: {browser_desktop}")
+
+    if browser_desktop and shutil.which("xdg-settings"):
+        subprocess.run(["xdg-settings", "set", "default-web-browser", browser_desktop], check=False)
+        subprocess.run(["xdg-settings", "set", "default-url-scheme-handler", "http", browser_desktop], check=False)
+        subprocess.run(["xdg-settings", "set", "default-url-scheme-handler", "https", browser_desktop], check=False)
+
+    if shutil.which("gsettings"):
+        subprocess.run(["gsettings", "set", "org.gnome.desktop.default-applications.terminal", "exec", "kitty"], check=False)
+        subprocess.run(["gsettings", "set", "org.gnome.desktop.default-applications.terminal", "exec-arg", "-e"], check=False)
+        print("  ✓ Default terminal set: kitty")
+
+    # Set user environment variables for default apps
+    env_d = dot_dir / "environment.d"
+    env_d.mkdir(parents=True, exist_ok=True)
+    asura_env = env_d / "10-asura.conf"
+    asura_env_content = "TERMINAL=kitty\nEDITOR=micro\nVISUAL=code\n"
+    asura_env.write_text(asura_env_content)
+    print(f"  ✓ User session variables written to {asura_env}")
+
+    if shutil.which("fish"):
+        try:
+            subprocess.run(["fish", "-c", "set -Ux TERMINAL kitty; set -Ux EDITOR micro; set -Ux VISUAL code"], capture_output=True, check=False)
+            print("  ✓ Configured fish shell universal default variables.")
+        except Exception:
+            pass
+
+    # Synchronize with Asura default_apps_manager if installed
+    default_apps_script = asura_dir / "Shell/quickshell/Services/default_apps_manager.py"
+    if default_apps_script.exists():
+        try:
+            payload = json.dumps({
+                "fileExplorer": "nautilus",
+                "terminal": "kitty",
+                "browser": "vivaldi",
+                "editor": "code",
+                "audioSettings": "pavucontrol"
+            })
+            subprocess.run(["python3", str(default_apps_script), "apply", payload], capture_output=True, timeout=5, check=False)
+            print("  ✓ Asura shell default apps synchronized.")
+        except Exception:
+            pass
 
 
 def setup_hyprland_plugins():
@@ -577,12 +721,18 @@ def setup_fish_environment():
         if not awww_symlink.exists():
             awww_symlink.symlink_to(Path(shutil.which("swww")))
             print(f"  ✓ Created compatibility symlink: {awww_symlink} -> swww")
+        swww_bin = shutil.which("swww")
+        if swww_bin:
+            subprocess.run(["sudo", "ln", "-sf", swww_bin, "/usr/local/bin/awww"], capture_output=True, check=False)
 
     if not shutil.which("awww-daemon") and shutil.which("swww-daemon"):
         daemon_symlink = bin_dir / "awww-daemon"
         if not daemon_symlink.exists():
             daemon_symlink.symlink_to(Path(shutil.which("swww-daemon")))
             print(f"  ✓ Created compatibility symlink: {daemon_symlink} -> swww-daemon")
+        daemon_bin = shutil.which("swww-daemon")
+        if daemon_bin:
+            subprocess.run(["sudo", "ln", "-sf", daemon_bin, "/usr/local/bin/awww-daemon"], capture_output=True, check=False)
 
 
 def setup_asura_config():
@@ -840,9 +990,10 @@ def main():
     else:
         print("Skipping font installation (--skip-fonts specified).")
 
-    # Setup Bibata Modern Ice cursor and Conflux icon themes
+    # Setup Bibata Modern Ice cursor, Conflux icon themes and adw-gtk3 widget theme
     if not args.skip_themes:
         setup_cursor_and_icons()
+        setup_gtk_theme()
     else:
         print("Skipping theme installation (--skip-themes specified).")
 
@@ -852,6 +1003,7 @@ def main():
     setup_micro_plugins()
     setup_hyprland_plugins()
     setup_fish_environment()
+    setup_default_apps()
 
     print("\n" + "=" * 56)
     print(f"     ASURA installation completed successfully! (v{__version__})")
