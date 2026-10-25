@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import urllib.request
 from pathlib import Path
 
@@ -187,7 +188,7 @@ def install_dependencies():
             # Fish Shell Tools
             "bat", "zoxide", "eza", "fzf", "fd",
             # Hyprland session helpers & build tools for hyprpm
-            "cliphist", "gammastep", "trash-cli", "gnome-keyring", "polkit-gnome", "cmake", "cpio", "gcc", "pkgconf",
+            "cliphist", "gammastep", "trash-cli", "gnome-keyring", "polkit-gnome", "cmake", "cpio", "gcc", "pkgconf", "meson", "hyprwayland-scanner",
             # System, Media & Qt6
             "qt6-declarative", "qt6-5compat",
             "wireplumber", "libpulse", "sound-theme-freedesktop",
@@ -241,7 +242,7 @@ def install_dependencies():
             # Fish Shell Tools
             "bat", "zoxide", "eza", "fzf", "fd-find",
             # Hyprland session helpers & build tools for hyprpm
-            "cliphist", "gammastep", "trash-cli", "gnome-keyring", "cmake", "cpio", "gcc", "gcc-c++", "hyprland-devel", "pkgconf-pkg-config",
+            "cliphist", "gammastep", "trash-cli", "gnome-keyring", "cmake", "cpio", "gcc", "gcc-c++", "hyprland-devel", "pkgconf-pkg-config", "meson", "hyprwayland-scanner",
             # System, Media & Qt6
             "qt6-qtdeclarative", "qt6-qt5compat",
             "wireplumber", "pulseaudio-utils", "sound-theme-freedesktop",
@@ -413,24 +414,131 @@ def setup_hyprland_plugins():
         return
 
     print("Configuring Hyprland plugins via hyprpm...")
-    try:
-        # Ensure hyprpm headers are built/updated
-        print("  -> Updating hyprpm headers (this may take a moment)...")
-        subprocess.run(["hyprpm", "update", "-f"], check=False)
 
-        res = subprocess.run(["hyprpm", "list"], capture_output=True, text=True, timeout=10)
+    # Refresh sudo credentials upfront so hyprpm has superuser access
+    try:
+        subprocess.run(["sudo", "-v"], check=True)
+    except Exception as e:
+        print(f"  Notice: Could not refresh sudo credentials: {e}")
+
+    # hyprpm executes 'sudo -k' upon exit of every subcommand (dropSudo).
+    # This wipes sudo timestamps between commands, causing password prompts to repeatedly
+    # pop up or fail in automated environments. A temporary shim prevents 'sudo -k' from dropping
+    # the timestamp during plugin setup.
+    temp_bin = tempfile.mkdtemp(prefix="asura_sudo_shim_")
+    shim_sudo = Path(temp_bin) / "sudo"
+    real_sudo = shutil.which("sudo") or "/usr/bin/sudo"
+    shim_content = f"""#!/bin/sh
+if [ "$1" = "-k" ]; then
+    exit 0
+fi
+exec "{real_sudo}" "$@"
+"""
+    shim_sudo.write_text(shim_content)
+    shim_sudo.chmod(0o755)
+
+    old_path = os.environ.get("PATH", "")
+    env = os.environ.copy()
+    env["PATH"] = f"{temp_bin}:{old_path}"
+
+    headless_proc = None
+    temp_cfg = None
+    try:
+        sig = env.get("HYPRLAND_INSTANCE_SIGNATURE")
+        uid = os.getuid()
+        hypr_run_dir = Path(f"/run/user/{uid}/hypr")
+
+        # Detect active running Hyprland socket if not set in environment
+        if not sig and hypr_run_dir.exists():
+            for entry in hypr_run_dir.iterdir():
+                if entry.is_dir() and (entry / ".socket.sock").exists():
+                    sig = entry.name
+                    env["HYPRLAND_INSTANCE_SIGNATURE"] = sig
+                    break
+
+        # hyprpm requires an active Hyprland instance to query the running version and ABI hash.
+        # If Hyprland is not running, spawn a temporary minimal headless session.
+        if not sig and shutil.which("Hyprland"):
+            print("  -> Initializing temporary headless Hyprland session for plugin build...")
+            temp_cfg = tempfile.NamedTemporaryFile("w", delete=False, suffix=".conf")
+            temp_cfg.write("debug:disable_logs = false\n")
+            temp_cfg.close()
+
+            before_dirs = set(p.name for p in hypr_run_dir.iterdir() if p.is_dir()) if hypr_run_dir.exists() else set()
+            headless_env = env.copy()
+            headless_env["AQ_PLATFORM"] = "headless"
+            headless_env["WLR_BACKENDS"] = "headless"
+
+            headless_proc = subprocess.Popen(
+                ["Hyprland", "-c", temp_cfg.name],
+                env=headless_env,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+
+            # Wait for socket to become available (up to 4 seconds)
+            for _ in range(40):
+                time.sleep(0.1)
+                if hypr_run_dir.exists():
+                    now_dirs = set(p.name for p in hypr_run_dir.iterdir() if p.is_dir())
+                    diff = now_dirs - before_dirs
+                    for d in diff:
+                        if (hypr_run_dir / d / ".socket.sock").exists():
+                            sig = d
+                            break
+                if sig:
+                    break
+
+            if sig:
+                env["HYPRLAND_INSTANCE_SIGNATURE"] = sig
+                print(f"  ✓ Headless Hyprland active (instance: {sig[:16]}...)")
+            else:
+                print("  Notice: Could not start headless Hyprland session. Proceeding with best effort.")
+
+        # Update hyprpm headers
+        print("  -> Updating hyprpm headers (this may take a moment)...")
+        subprocess.run(["hyprpm", "update", "-f"], env=env, check=False)
+
+        res = subprocess.run(["hyprpm", "list"], env=env, capture_output=True, text=True, timeout=15)
         if "hyprland-scroll-overview" not in res.stdout:
             print("  -> Adding hyprland-scroll-overview plugin...")
-            subprocess.run(["hyprpm", "add", "https://github.com/yayuuu/hyprland-scroll-overview"], input="y\n", text=True, check=False)
-            subprocess.run(["hyprpm", "enable", "scrolloverview"], check=False)
-            subprocess.run(["hyprpm", "reload"], check=False)
+            subprocess.run(["hyprpm", "add", "https://github.com/yayuuu/hyprland-scroll-overview"], input="y\n", env=env, text=True, check=False)
+            subprocess.run(["hyprpm", "enable", "scrolloverview"], env=env, check=False)
             print("  ✓ hyprland-scroll-overview added and enabled.")
         else:
             print("  ✓ hyprland-scroll-overview is already registered.")
-            subprocess.run(["hyprpm", "enable", "scrolloverview"], check=False)
-            subprocess.run(["hyprpm", "reload"], check=False)
+            subprocess.run(["hyprpm", "enable", "scrolloverview"], env=env, check=False)
+
+        # Verify compiled plugin binary in cache
+        user_name = Path.home().name
+        so_path = Path(f"/var/cache/hyprpm/{user_name}/hyprland-scroll-overview/scrolloverview.so")
+        if so_path.exists():
+            print(f"  ✓ scrolloverview binary verified at {so_path}")
+        else:
+            print("  Notice: scrolloverview.so was not found in cache. A build might be triggered on first Hyprland launch.")
+
+        # Reload plugins if an actual graphical Hyprland instance was already running
+        if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"):
+            subprocess.run(["hyprpm", "reload"], env=env, check=False)
+
     except Exception as e:
         print(f"Notice: Could not configure hyprpm plugins: {e}")
+    finally:
+        if headless_proc:
+            headless_proc.terminate()
+            try:
+                headless_proc.wait(timeout=2)
+            except Exception:
+                headless_proc.kill()
+        if temp_cfg and Path(temp_cfg.name).exists():
+            try:
+                Path(temp_cfg.name).unlink()
+            except Exception:
+                pass
+        try:
+            shutil.rmtree(temp_bin, ignore_errors=True)
+        except Exception:
+            pass
 
 
 def setup_micro_plugins():
@@ -713,6 +821,14 @@ def main():
     services_dir = asura_dir / "Shell/quickshell/Services"
     if services_dir.exists():
         for script_file in services_dir.glob("*.py"):
+            try:
+                script_file.chmod(0o755)
+            except Exception:
+                pass
+
+    hypr_scripts_dir = asura_dir / "hypr/scripts"
+    if hypr_scripts_dir.exists():
+        for script_file in hypr_scripts_dir.glob("*.sh"):
             try:
                 script_file.chmod(0o755)
             except Exception:
