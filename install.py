@@ -183,7 +183,7 @@ def install_dependencies():
         arch_official = [
             # Base Hyprland & Shell
             "hyprland", "hyprpm", "hypridle", "quickshell", "kitty", "fastfetch", "flameshot", "micro", "starship", "btop", "fish",
-            "nautilus", "pavucontrol", "vivaldi", "code", "cava", "nwg-look",
+            "nautilus", "pavucontrol", "vivaldi", "code", "cava", "nwg-look", "awww",
             # Fish Shell Tools
             "bat", "zoxide", "eza", "fzf", "fd",
             # Hyprland session helpers & build tools for hyprpm
@@ -199,8 +199,8 @@ def install_dependencies():
             # Font & archive tools
             "fontconfig", "git", "tar", "xz"
         ]
-        # Wallpaper daemon awww, proprietary VS Code build, and Bibata Cursor from AUR
-        arch_aur = ["awww", "visual-studio-code-bin", "bibata-cursor-theme-bin"]
+        # Proprietary VS Code build and Bibata Cursor from AUR (optional)
+        arch_aur = ["visual-studio-code-bin", "bibata-cursor-theme-bin"]
 
         # Install official packages
         subprocess.run(["sudo", "pacman", "-S", "--needed", "--noconfirm"] + arch_official, check=True)
@@ -211,7 +211,7 @@ def install_dependencies():
             print(f"Installing AUR packages using {aur_helper}...")
             subprocess.run([aur_helper, "-S", "--needed", "--noconfirm"] + arch_aur, check=False)
         else:
-            print("Notice: 'paru' or 'yay' not found. Please install AUR packages manually if needed:")
+            print("Notice: 'paru' or 'yay' not found. Optional AUR packages skipped:")
             print("       " + " ".join(arch_aur))
 
         # Enable standard system daemons (Bluetooth, NetworkManager, Power)
@@ -509,19 +509,28 @@ def setup_asura_config():
     recordings_dir = home / "Videos/Recordings"
     recordings_dir.mkdir(parents=True, exist_ok=True)
 
-    # Ensure default config.json has colorsAutoGenerate = True and recordingsFolder
+    # Ensure default config.json has colorsAutoGenerate = True, wallpaper, and recordingsFolder
     config_file = config_dir / "config.json"
+    import json
     if not config_file.exists():
-        import json
         initial_cfg = {
             "colorsAutoGenerate": True,
             "isDarkMode": True,
             "scheme": "tonal-spot",
-            "wallpaper": str(default_wallpaper_path),
+            "wallpaper": "~/Pictures/Wallpapers/default_wallpaper.jpg",
             "recordingsFolder": "~/Videos/Recordings"
         }
         config_file.write_text(json.dumps(initial_cfg, indent=2) + "\n")
         print(f"  ✓ Created default Asura config with auto colors enabled: {config_file}")
+    else:
+        try:
+            cfg_data = json.loads(config_file.read_text())
+            if "wallpaper" not in cfg_data or not cfg_data["wallpaper"]:
+                cfg_data["wallpaper"] = "~/Pictures/Wallpapers/default_wallpaper.jpg"
+                config_file.write_text(json.dumps(cfg_data, indent=2) + "\n")
+                print(f"  ✓ Added default wallpaper to config: {config_file}")
+        except Exception:
+            pass
 
     # Set up Python venv for dynamic color generation (materialyoucolor)
     state_venv = home / ".local/state/quickshell/.venv"
@@ -550,6 +559,25 @@ def setup_asura_config():
             print("  ✓ Initial theme colors generated successfully.")
         except Exception as e:
             print(f"  Notice: Initial dynamic color generation deferred: {e}")
+
+    # If running inside an active Wayland / Hyprland session, immediately set wallpaper via awww/swww
+    if os.environ.get("WAYLAND_DISPLAY") or os.environ.get("HYPRLAND_INSTANCE_SIGNATURE"):
+        awww_bin = shutil.which("awww") or shutil.which("swww")
+        daemon_bin = shutil.which("awww-daemon") or shutil.which("swww-daemon")
+        if awww_bin:
+            try:
+                if daemon_bin and subprocess.run(["pgrep", "-x", Path(daemon_bin).name], capture_output=True).returncode != 0:
+                    subprocess.Popen([daemon_bin], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    import time
+                    time.sleep(0.3)
+                target_wall = wallpapers_folder / "default_wallpaper.jpg"
+                if not target_wall.exists():
+                    target_wall = default_wallpaper_path
+                if target_wall.exists():
+                    subprocess.run([awww_bin, "img", str(target_wall), "--transition-type", "wave", "--transition-duration", "1"], capture_output=True, check=False)
+                    print(f"  ✓ Applied default wallpaper to active display: {target_wall}")
+            except Exception as e:
+                print(f"  Notice: Live wallpaper application: {e}")
 
 
 def main():
