@@ -5,6 +5,11 @@ if status is-interactive
     set -gx EDITOR micro
     set -gx VISUAL micro
 
+    # CachyOS fish-done notification compatibility
+    if not set -q __done_min_cmd_duration; or test -z "$__done_min_cmd_duration"
+        set -g __done_min_cmd_duration 5000
+    end
+
     fastfetch
     if command -v pacman >/dev/null 2>&1
         alias i 'sudo pacman -S'
