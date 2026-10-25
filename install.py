@@ -490,20 +490,23 @@ def setup_asura_config():
         hypr_user.write_text("-- Custom user Hyprland configurations\n")
         print(f"  ✓ Created default user config file: {hypr_user}")
 
-    # Default wallpaper path
+    # Default wallpaper path (check both installed shell dir and repo script_dir)
     default_wallpaper_path = asura_dir / "Shell/quickshell/Assets/default_wallpaper.jpg"
+    if not default_wallpaper_path.exists():
+        fallback_src = script_dir / "Asura-shell/Shell/quickshell/Assets/default_wallpaper.jpg"
+        if fallback_src.exists():
+            default_wallpaper_path = fallback_src
 
     # Copy default wallpaper to ~/Pictures/Wallpapers as well for convenient selection
     wallpapers_folder = home / "Pictures/Wallpapers"
     wallpapers_folder.mkdir(parents=True, exist_ok=True)
-    if default_wallpaper_path.exists():
-        dest_wall = wallpapers_folder / "default_wallpaper.jpg"
-        if not dest_wall.exists():
-            try:
-                shutil.copy2(default_wallpaper_path, dest_wall)
-                print(f"  ✓ Copied default wallpaper to: {dest_wall}")
-            except Exception:
-                pass
+    dest_wall = wallpapers_folder / "default_wallpaper.jpg"
+    if default_wallpaper_path.exists() and not dest_wall.exists():
+        try:
+            shutil.copy2(default_wallpaper_path, dest_wall)
+            print(f"  ✓ Copied default wallpaper to: {dest_wall}")
+        except Exception:
+            pass
 
     # Ensure default recordings directory exists
     recordings_dir = home / "Videos/Recordings"
@@ -512,7 +515,7 @@ def setup_asura_config():
     # Ensure default config.json has colorsAutoGenerate = True, wallpaper, and recordingsFolder
     config_file = config_dir / "config.json"
     import json
-    target_default_wall = str(wallpapers_folder / "default_wallpaper.jpg")
+    target_default_wall = str(dest_wall) if dest_wall.exists() else str(default_wallpaper_path)
     if not config_file.exists():
         initial_cfg = {
             "colorsAutoGenerate": True,
@@ -526,10 +529,16 @@ def setup_asura_config():
     else:
         try:
             cfg_data = json.loads(config_file.read_text())
-            if "wallpaper" not in cfg_data or not cfg_data["wallpaper"]:
+            current_wall = cfg_data.get("wallpaper", "")
+            needs_repair = not current_wall
+            if current_wall:
+                expanded_wall = Path(os.path.expanduser(str(current_wall).replace("file://", "")))
+                if not expanded_wall.exists():
+                    needs_repair = True
+            if needs_repair:
                 cfg_data["wallpaper"] = target_default_wall
                 config_file.write_text(json.dumps(cfg_data, indent=2) + "\n")
-                print(f"  ✓ Added default wallpaper to config: {config_file}")
+                print(f"  ✓ Configured working default wallpaper in config: {config_file}")
         except Exception:
             pass
 
