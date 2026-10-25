@@ -10,7 +10,7 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 # Base directories (XDG standard)
 home = Path.home()
@@ -194,6 +194,8 @@ def install_dependencies():
             "networkmanager", "bluez-utils", "brightnessctl", "power-profiles-daemon",
             "wl-clipboard", "wtype", "zenity", "xdg-utils", "jq", "ffmpeg",
             "python-pillow", "python-numpy",
+            # Screen recording & notifications
+            "wf-recorder", "slurp", "libnotify",
             # Font & archive tools
             "fontconfig", "git", "tar", "xz"
         ]
@@ -244,6 +246,8 @@ def install_dependencies():
             "wl-clipboard", "wtype", "zenity", "nwg-look", "xdg-utils", "jq", "ffmpeg",
             "cava", "kitty", "fastfetch", "flameshot", "micro", "btop", "fish",
             "python3-pillow", "python3-numpy",
+            # Screen recording & notifications
+            "wf-recorder", "slurp", "libnotify",
             # Font & archive tools
             "fontconfig", "git", "tar", "xz"
         ]
@@ -497,7 +501,11 @@ def setup_asura_config():
             except Exception:
                 pass
 
-    # Ensure default config.json has colorsAutoGenerate = True
+    # Ensure default recordings directory exists
+    recordings_dir = home / "Videos/Recordings"
+    recordings_dir.mkdir(parents=True, exist_ok=True)
+
+    # Ensure default config.json has colorsAutoGenerate = True and recordingsFolder
     config_file = config_dir / "config.json"
     if not config_file.exists():
         import json
@@ -505,7 +513,8 @@ def setup_asura_config():
             "colorsAutoGenerate": True,
             "isDarkMode": True,
             "scheme": "tonal-spot",
-            "wallpaper": str(default_wallpaper_path)
+            "wallpaper": str(default_wallpaper_path),
+            "recordingsFolder": "~/Videos/Recordings"
         }
         config_file.write_text(json.dumps(initial_cfg, indent=2) + "\n")
         print(f"  ✓ Created default Asura config with auto colors enabled: {config_file}")
@@ -644,6 +653,11 @@ def main():
 
         cli_target.symlink_to(cli_source)
         print(f"CLI installed: {cli_target} -> {cli_source}")
+
+    # Ensure recording manager and helper scripts are executable
+    recorder_script = asura_dir / "Shell/quickshell/Services/recorder_manager.py"
+    if recorder_script.exists():
+        recorder_script.chmod(0o755)
 
     # Setup fonts shipped with Asura-shell
     if not args.skip_fonts:

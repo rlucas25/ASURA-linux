@@ -1,5 +1,6 @@
 {
   "colorsAutoGenerate": true,
   "isDarkMode": true,
-  "scheme": "tonal-spot"
+  "scheme": "tonal-spot",
+  "recordingsFolder": "~/Videos/Recordings"
 }
