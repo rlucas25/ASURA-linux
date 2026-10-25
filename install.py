@@ -654,10 +654,14 @@ def main():
         cli_target.symlink_to(cli_source)
         print(f"CLI installed: {cli_target} -> {cli_source}")
 
-    # Ensure recording manager and helper scripts are executable
-    recorder_script = asura_dir / "Shell/quickshell/Services/recorder_manager.py"
-    if recorder_script.exists():
-        recorder_script.chmod(0o755)
+    # Ensure helper and manager scripts are executable
+    services_dir = asura_dir / "Shell/quickshell/Services"
+    if services_dir.exists():
+        for script_file in services_dir.glob("*.py"):
+            try:
+                script_file.chmod(0o755)
+            except Exception:
+                pass
 
     # Setup fonts shipped with Asura-shell
     if not args.skip_fonts:
