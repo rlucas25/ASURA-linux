@@ -140,8 +140,8 @@ gpgkey=https://repo.vivaldi.com/archive/linux_signing_key.pub
         subprocess.run(["sudo", "tee", str(vivaldi_repo)], input=vivaldi_content, text=True, capture_output=True, check=False)
 
 
-def setup_fedora_services():
-    """Enable and start default system daemons on Fedora (Battery, Bluetooth, Network, Energy)."""
+def setup_system_services(distro="Linux"):
+    """Enable and start default system daemons (Battery, Bluetooth, Network, Energy)."""
     if not shutil.which("systemctl"):
         return
 
@@ -157,7 +157,7 @@ def setup_fedora_services():
     elif shutil.which("powerprofilesctl"):
         services.append("power-profiles-daemon.service")
 
-    print("Configuring default Fedora system services (Battery, Bluetooth, Network)...")
+    print(f"Configuring default {distro} system services (Battery, Bluetooth, Network, Power)...")
     for service in services:
         print(f"  -> Enabling {service}...")
         try:
@@ -182,12 +182,12 @@ def install_dependencies():
         print("Installing dependencies for Arch / CachyOS Linux...")
         arch_official = [
             # Base Hyprland & Shell
-            "hyprland", "hypridle", "kitty", "fastfetch", "flameshot", "micro", "starship", "btop", "fish",
-            "nautilus", "pavucontrol", "vivaldi",
+            "hyprland", "hypridle", "quickshell", "kitty", "fastfetch", "flameshot", "micro", "starship", "btop", "fish",
+            "nautilus", "pavucontrol", "vivaldi", "code", "cava", "nwg-look",
             # Fish Shell Tools
             "bat", "zoxide", "eza", "fzf", "fd",
             # Hyprland session helpers & build tools for hyprpm
-            "cliphist", "gammastep", "trash-cli", "gnome-keyring", "polkit-gnome", "cmake", "cpio", "gcc", "pkgconf", "hyprland-headers",
+            "cliphist", "gammastep", "trash-cli", "gnome-keyring", "polkit-gnome", "cmake", "cpio", "gcc", "pkgconf",
             # System, Media & Qt6
             "qt6-declarative", "qt6-5compat",
             "wireplumber", "libpulse", "sound-theme-freedesktop",
@@ -199,8 +199,8 @@ def install_dependencies():
             # Font & archive tools
             "fontconfig", "git", "tar", "xz"
         ]
-        # Official VS Code (proprietary Microsoft build), Quickshell, and Bibata Cursor from AUR
-        arch_aur = ["quickshell", "awww", "cava", "nwg-look", "visual-studio-code-bin", "bibata-cursor-theme-bin"]
+        # Wallpaper daemon awww, proprietary VS Code build, and Bibata Cursor from AUR
+        arch_aur = ["awww", "visual-studio-code-bin", "bibata-cursor-theme-bin"]
 
         # Install official packages
         subprocess.run(["sudo", "pacman", "-S", "--needed", "--noconfirm"] + arch_official, check=True)
@@ -211,8 +211,11 @@ def install_dependencies():
             print(f"Installing AUR packages using {aur_helper}...")
             subprocess.run([aur_helper, "-S", "--needed", "--noconfirm"] + arch_aur, check=False)
         else:
-            print("Notice: 'paru' or 'yay' not found. Please install AUR packages manually:")
+            print("Notice: 'paru' or 'yay' not found. Please install AUR packages manually if needed:")
             print("       " + " ".join(arch_aur))
+
+        # Enable standard system daemons (Bluetooth, NetworkManager, Power)
+        setup_system_services("Arch")
 
     elif distro == "Fedora":
         print("Configuring and installing dependencies for Fedora...")
@@ -270,7 +273,7 @@ def install_dependencies():
                 print("✓ Hyprland installed successfully.")
 
         # Enable standard Fedora daemons (UPower, BlueZ, NetworkManager, TuneD/PPD)
-        setup_fedora_services()
+        setup_system_services("Fedora")
 
     else:
         print(f"Warning: Distribution '{distro}' not recognized automatically. Please install dependencies manually.")
