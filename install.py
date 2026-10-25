@@ -512,12 +512,13 @@ def setup_asura_config():
     # Ensure default config.json has colorsAutoGenerate = True, wallpaper, and recordingsFolder
     config_file = config_dir / "config.json"
     import json
+    target_default_wall = str(wallpapers_folder / "default_wallpaper.jpg")
     if not config_file.exists():
         initial_cfg = {
             "colorsAutoGenerate": True,
             "isDarkMode": True,
             "scheme": "tonal-spot",
-            "wallpaper": "~/Pictures/Wallpapers/default_wallpaper.jpg",
+            "wallpaper": target_default_wall,
             "recordingsFolder": "~/Videos/Recordings"
         }
         config_file.write_text(json.dumps(initial_cfg, indent=2) + "\n")
@@ -526,7 +527,7 @@ def setup_asura_config():
         try:
             cfg_data = json.loads(config_file.read_text())
             if "wallpaper" not in cfg_data or not cfg_data["wallpaper"]:
-                cfg_data["wallpaper"] = "~/Pictures/Wallpapers/default_wallpaper.jpg"
+                cfg_data["wallpaper"] = target_default_wall
                 config_file.write_text(json.dumps(cfg_data, indent=2) + "\n")
                 print(f"  ✓ Added default wallpaper to config: {config_file}")
         except Exception:
@@ -648,6 +649,19 @@ def main():
         asura_dir.parent.mkdir(parents=True, exist_ok=True)
         copy_tree(asura_shell_src, asura_dir)
         print(f"Shell files copied to: {asura_dir}")
+
+        # Ensure ~/.local/share/asura is a valid standalone git repository
+        git_target = asura_dir / ".git"
+        if git_target.is_file():
+            git_target.unlink()
+        if not (git_target / "config").exists():
+            if git_target.is_dir():
+                shutil.rmtree(git_target)
+            subprocess.run(["git", "-C", str(asura_dir), "init"], check=False)
+            subprocess.run(["git", "-C", str(asura_dir), "remote", "add", "origin", "https://github.com/rlucas25/Asura-shell.git"], check=False)
+            subprocess.run(["git", "-C", str(asura_dir), "fetch", "origin", "main"], check=False)
+            subprocess.run(["git", "-C", str(asura_dir), "reset", "--hard", "origin/main"], check=False)
+            subprocess.run(["git", "-C", str(asura_dir), "branch", "--set-upstream-to=origin/main", "main"], check=False)
 
     # Symlink ~/.config/hypr -> ~/.local/share/asura/hypr
     target_hypr = asura_dir / "hypr"
