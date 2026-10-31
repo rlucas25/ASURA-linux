@@ -787,6 +787,29 @@ org.freedesktop.impl.portal.ScreenCast=hyprland
 def setup_asura_config():
     """Ensure ~/.config/asura directory exists with default hypr-vars.lua, hypr-user.lua, and config.json with auto colors."""
     config_dir.mkdir(parents=True, exist_ok=True)
+
+    # Copy defaults from Asura-shell/asura if available
+    asura_defaults = asura_dir / "asura"
+    if not asura_defaults.exists():
+        asura_defaults = script_dir / "Asura-shell/asura"
+        if not asura_defaults.exists():
+            asura_defaults = script_dir / "Asura-Shell/asura"
+
+    if asura_defaults.exists():
+        for item in asura_defaults.iterdir():
+            dest = config_dir / item.name
+            if not dest.exists():
+                try:
+                    if item.is_dir() and not item.is_symlink():
+                        copy_tree(item, dest)
+                    elif item.is_symlink():
+                        os.symlink(os.readlink(item), dest)
+                    else:
+                        shutil.copy2(item, dest)
+                    print(f"  ✓ Installed default configuration: {dest}")
+                except Exception as e:
+                    print(f"  Notice: Could not copy {item.name}: {e}")
+
     hypr_vars = config_dir / "hypr-vars.lua"
     if not hypr_vars.exists():
         hypr_vars.write_text("return {}\n")
@@ -996,6 +1019,24 @@ def main():
             subprocess.run(["git", "-C", str(asura_dir), "fetch", "origin", "main"], check=False)
             subprocess.run(["git", "-C", str(asura_dir), "reset", "--hard", "origin/main"], check=False)
             subprocess.run(["git", "-C", str(asura_dir), "branch", "--set-upstream-to=origin/main", "main"], check=False)
+
+        # Copy default Asura user configs from Asura-shell/asura to ~/.config/asura if missing
+        asura_config_src = asura_dir / "asura"
+        if not asura_config_src.exists():
+            asura_config_src = asura_shell_src / "asura"
+
+        if asura_config_src.exists():
+            config_dir.mkdir(parents=True, exist_ok=True)
+            for item in asura_config_src.iterdir():
+                destination = config_dir / item.name
+                if not destination.exists():
+                    if item.is_dir() and not item.is_symlink():
+                        copy_tree(item, destination)
+                    elif item.is_symlink():
+                        os.symlink(os.readlink(item), destination)
+                    else:
+                        shutil.copy2(item, destination)
+                    print(f"Installed default Asura configuration: {destination}")
 
     # Symlink ~/.config/hypr -> ~/.local/share/asura/hypr
     target_hypr = asura_dir / "hypr"
