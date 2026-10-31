@@ -872,12 +872,13 @@ def setup_asura_config():
     recordings_dir = home / "Videos/Recordings"
     recordings_dir.mkdir(parents=True, exist_ok=True)
 
-    # Ensure default config.json has colorsAutoGenerate = True, wallpaper, and recordingsFolder
+    # Ensure default config.json has alertsPopups = True, colorsAutoGenerate = True, wallpaper, and recordingsFolder
     config_file = config_dir / "config.json"
     import json
     target_default_wall = str(dest_wall) if dest_wall.exists() else str(default_wallpaper_path)
     if not config_file.exists():
         initial_cfg = {
+            "alertsPopups": True,
             "colorsAutoGenerate": True,
             "isDarkMode": True,
             "scheme": "tonal-spot",
@@ -895,10 +896,14 @@ def setup_asura_config():
                 expanded_wall = Path(os.path.expanduser(str(current_wall).replace("file://", "")))
                 if not expanded_wall.exists():
                     needs_repair = True
+            if "alertsPopups" not in cfg_data:
+                cfg_data["alertsPopups"] = True
+                needs_repair = True
             if needs_repair:
-                cfg_data["wallpaper"] = target_default_wall
+                if not current_wall or needs_repair and not cfg_data.get("wallpaper"):
+                    cfg_data["wallpaper"] = target_default_wall
                 config_file.write_text(json.dumps(cfg_data, indent=2) + "\n")
-                print(f"  ✓ Configured working default wallpaper in config: {config_file}")
+                print(f"  ✓ Configured working default configuration in config: {config_file}")
         except Exception:
             pass
 
