@@ -12,8 +12,6 @@ import time
 import urllib.request
 from pathlib import Path
 
-__version__ = "0.1.2"
-
 # Base directories (XDG standard)
 home = Path.home()
 dot_dir = home / ".config"
@@ -26,6 +24,27 @@ fonts_dir = home / ".local/share/fonts/Asura"
 
 # Installer root directory
 script_dir = Path(__file__).resolve().parent
+
+
+def get_version() -> str:
+    """Read version from VERSION file or fallback to default."""
+    candidates = [
+        script_dir / "Asura-shell" / "VERSION",
+        asura_dir / "VERSION",
+        script_dir / "VERSION",
+    ]
+    for c in candidates:
+        if c.exists():
+            try:
+                v = c.read_text().strip()
+                if v:
+                    return v
+            except Exception:
+                pass
+    return "0.1.3"
+
+
+__version__ = get_version()
 
 
 def detect_distro() -> str:
