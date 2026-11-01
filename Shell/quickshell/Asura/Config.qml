@@ -308,6 +308,12 @@ Singleton {
         saveDebounceTimer.restart();
     }
 
+    function applyWallpaper() {
+        if (wallpaperService) {
+            wallpaperService.applyWallpaper();
+        }
+    }
+
     function reload() {
         if (saveDebounceTimer.running) {
             saveDebounceTimer.stop();

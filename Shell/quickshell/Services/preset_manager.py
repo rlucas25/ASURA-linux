@@ -273,6 +273,8 @@ def save_preset(name, preset_id=None, selected_tabs=None):
 
     # 2. Capture and Copy Wallpaper if general or theme is included
     raw_wp = config_data.get("wallpaper", "")
+    if raw_wp:
+        raw_wp = re.sub(r'^file://', '', str(raw_wp)).strip()
     expanded_wp = os.path.expanduser(raw_wp) if raw_wp else ""
     dest_wp_path = ""
     has_wp_tab = ("general" in selected_tabs) or ("theme" in selected_tabs)
@@ -424,11 +426,21 @@ def apply_preset(preset_id):
         saved_tabs = [str(t).lower().strip() for t in saved_tabs]
 
     wp_copy = manifest.get("wallpaperCopyPath")
-    if not wp_copy or not os.path.exists(wp_copy):
+    if not wp_copy or not os.path.exists(wp_copy) or os.path.getsize(wp_copy) == 0:
+        wp_copy = None
         for f in os.listdir(preset_folder):
             if f.startswith("wallpaper."):
-                wp_copy = os.path.join(preset_folder, f)
-                break
+                candidate = os.path.join(preset_folder, f)
+                if os.path.exists(candidate) and os.path.getsize(candidate) > 0:
+                    wp_copy = candidate
+                    break
+
+    if not wp_copy:
+        orig_wp = manifest.get("wallpaper") or saved_cfg.get("wallpaper")
+        if orig_wp:
+            orig_wp = re.sub(r'^file://', '', str(orig_wp)).strip()
+            if os.path.exists(orig_wp) and os.path.getsize(orig_wp) > 0:
+                wp_copy = orig_wp
 
     # 1. Restore colors.json if theme tab was saved
     primary_slot = None
@@ -466,7 +478,7 @@ def apply_preset(preset_id):
             elif k in manifest:
                 current_cfg[k] = manifest[k]
 
-    if ("general" in saved_tabs or "theme" in saved_tabs) and wp_copy and os.path.exists(wp_copy):
+    if ("general" in saved_tabs or "theme" in saved_tabs) and wp_copy and os.path.exists(wp_copy) and os.path.getsize(wp_copy) > 0:
         current_cfg["wallpaper"] = wp_copy
 
     write_json_file(CONFIG_FILE, current_cfg)
@@ -479,8 +491,9 @@ def apply_preset(preset_id):
             sys.stderr.write(f"Failed to apply window settings: {e}\n")
 
     # 5. Apply Wallpaper via awww if general or theme tab was saved
-    if ("general" in saved_tabs or "theme" in saved_tabs) and wp_copy and os.path.exists(wp_copy):
+    if ("general" in saved_tabs or "theme" in saved_tabs) and wp_copy and os.path.exists(wp_copy) and os.path.getsize(wp_copy) > 0:
         anim = current_cfg.get("wallpaperAnimation", "wave")
+        duration = current_cfg.get("wallpaperAnimationDuration", 1)
         wp_bin = shutil.which("awww") or shutil.which("swww") or "awww"
         try:
             subprocess.run([wp_bin, "img", wp_copy, "--transition-type", str(anim), "--transition-duration", str(duration)], capture_output=True, timeout=4)
