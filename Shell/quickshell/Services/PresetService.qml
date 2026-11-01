@@ -94,6 +94,9 @@ Item {
                                         if (typeof Colors !== "undefined" && typeof Colors.applyTemplates === "function") {
                                             Colors.applyTemplates();
                                         }
+                                        if (typeof Config !== "undefined" && typeof Config.applyWallpaper === "function") {
+                                            Config.applyWallpaper();
+                                        }
                                     });
                                     root.presetApplied(parsed.appliedId, parsed.name || "");
                                 } else if (parsed.deletedId) {
