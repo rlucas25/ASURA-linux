@@ -41,7 +41,7 @@ def get_version() -> str:
                     return v
             except Exception:
                 pass
-    return "0.1.5"
+    return "0.1.6"
 
 
 __version__ = get_version()
