@@ -215,7 +215,7 @@ def write_hypr_user_file_input(
 }"""
     if "dwindle" not in blocks:
         blocks["dwindle"] = """dwindle = {
-    smart_split = true
+    smart_split = false
 }"""
 
     numlock_str = "true" if numlock else "false"

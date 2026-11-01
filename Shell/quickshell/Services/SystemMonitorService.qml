@@ -67,9 +67,12 @@ Item {
         }
     }
 
-    readonly property string scriptPath: (typeof Quickshell.shellPath === "function")
-        ? Quickshell.shellPath("Services/system_monitor.py")
-        : (Quickshell.env("HOME") + "/.config/quickshell/Services/system_monitor.py")
+    readonly property string scriptPath: {
+        var p = (typeof Quickshell.shellPath === "function")
+            ? Quickshell.shellPath("Services/system_monitor.py").toString()
+            : (Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Services/system_monitor.py");
+        return p.replace(/^file:\/\//, "").replace(/^file:/, "");
+    }
 
     Timer {
         id: pollTimer

@@ -50,13 +50,19 @@ Singleton {
         return IconService.getAppIcon(klass, title);
     }
 
-    readonly property string eventsScriptPath: (typeof Quickshell.shellPath === "function")
-        ? Quickshell.shellPath("Services/hyprland_events.py")
-        : (Quickshell.env("HOME") + "/.config/quickshell/Services/hyprland_events.py")
+    readonly property string eventsScriptPath: {
+        var p = (typeof Quickshell.shellPath === "function")
+            ? Quickshell.shellPath("Services/hyprland_events.py").toString()
+            : (Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Services/hyprland_events.py");
+        return p.replace(/^file:\/\//, "").replace(/^file:/, "");
+    }
 
-    readonly property string previewScriptPath: (typeof Quickshell.shellPath === "function")
-        ? Quickshell.shellPath("Services/window_preview_helper.py")
-        : (Quickshell.env("HOME") + "/.config/quickshell/Services/window_preview_helper.py")
+    readonly property string previewScriptPath: {
+        var p = (typeof Quickshell.shellPath === "function")
+            ? Quickshell.shellPath("Services/window_preview_helper.py").toString()
+            : (Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Services/window_preview_helper.py");
+        return p.replace(/^file:\/\//, "").replace(/^file:/, "");
+    }
 
     function updateFromClassAndTitle(klass, title) {
         if (!klass && !title) {

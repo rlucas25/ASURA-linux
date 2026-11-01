@@ -69,9 +69,12 @@ onIsLockedChanged: {
         authProc.running = true;
     }
 
-    readonly property string scriptPath: (typeof Quickshell.shellPath === "function")
-        ? Quickshell.shellPath("Services/auth_helper.py")
-        : (Quickshell.env("HOME") + "/.config/quickshell/Services/auth_helper.py")
+    readonly property string scriptPath: {
+        var p = (typeof Quickshell.shellPath === "function")
+            ? Quickshell.shellPath("Services/auth_helper.py").toString()
+            : (Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Services/auth_helper.py");
+        return p.replace(/^file:\/\//, "").replace(/^file:/, "");
+    }
 
     Process {
         id: userProc
