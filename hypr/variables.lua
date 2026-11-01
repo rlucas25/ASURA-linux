@@ -45,7 +45,9 @@ return {
     windowGapsOut              = 8,
     singleWindowGapsOut        = 8,
 
-    -- Window styling
+    -- Window styling & Layout
+    layout                     = "dwindle",
+    smartSplit                 = false,
     windowOpacity              = 1,
     windowRounding             = 15,
     windowRoundingPower         = 2,

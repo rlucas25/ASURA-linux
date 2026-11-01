@@ -32,9 +32,10 @@ if check_file ~= nil then
         decoration = { blur = { enabled = false } }
     })
 else
+    local blur_on = (vars.blurEnabled ~= nil) and vars.blurEnabled or true
     hl.config({
         animations = { enabled = true },
-        decoration = { blur = { enabled = true } }
+        decoration = { blur = { enabled = blur_on } }
     })
 end
 

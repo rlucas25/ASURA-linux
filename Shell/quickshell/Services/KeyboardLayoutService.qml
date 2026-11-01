@@ -16,9 +16,12 @@ Singleton {
 
     signal layoutChanged(string shortCode, string fullName)
 
-    readonly property string watcherScriptPath: (typeof Quickshell.shellPath === "function")
-        ? Quickshell.shellPath("Services/keyboard_watcher.py")
-        : (Quickshell.env("HOME") + "/.config/quickshell/Services/keyboard_watcher.py")
+    readonly property string watcherScriptPath: {
+        var p = (typeof Quickshell.shellPath === "function")
+            ? Quickshell.shellPath("Services/keyboard_watcher.py").toString()
+            : (Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Services/keyboard_watcher.py");
+        return p.replace(/^file:\/\//, "").replace(/^file:/, "");
+    }
 
     function deriveShortLayout(activeKeymap, layoutStr, activeIndex) {
         if (layoutStr) {

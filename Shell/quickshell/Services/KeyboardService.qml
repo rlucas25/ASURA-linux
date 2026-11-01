@@ -312,9 +312,13 @@ Item {
             JSON.stringify(payload)
         ];
 
-        applySettingsProc.command = cmd;
-        applySettingsProc.running = false;
-        applySettingsProc.running = true;
+        if (typeof Quickshell.execDetached === "function") {
+            Quickshell.execDetached(cmd);
+        } else {
+            applySettingsProc.command = cmd;
+            applySettingsProc.running = false;
+            applySettingsProc.running = true;
+        }
         root.settingsUpdated();
     }
 

@@ -20,7 +20,7 @@ end
 
 hl.config({
     general = {
-        layout          = "dwindle",
+        layout          = vars.layout or "dwindle",
         allow_tearing   = false,
         gaps_workspaces = vars.workspaceGaps,
         gaps_in         = vars.windowGapsIn,
@@ -35,7 +35,6 @@ hl.config({
 
     dwindle = {
         preserve_split = true,
-        smart_split    = false,
         smart_resizing = true,
     },
 

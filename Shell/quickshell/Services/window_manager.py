@@ -373,8 +373,8 @@ def get_current_settings():
     shadow_render_power = hypr_vars.get("shadowRenderPower", sh_pwr_opt.get("int", 4) if sh_pwr_opt else 4)
     active_opacity = hypr_vars.get("activeOpacity", act_op_opt.get("float", 1.0) if act_op_opt else 1.0)
     inactive_opacity = hypr_vars.get("inactiveOpacity", inact_op_opt.get("float", 1.0) if inact_op_opt else 1.0)
-    layout = hypr_vars.get("layout", layout_opt.get("str", "dwindle") if layout_opt else "dwindle")
-    smart_split = hypr_vars.get("smartSplit", ss_opt.get("bool", False) if ss_opt else False)
+    layout = layout_opt.get("str") if (layout_opt and "str" in layout_opt) else hypr_vars.get("layout", "dwindle")
+    smart_split = ss_opt.get("bool") if (ss_opt and "bool" in ss_opt) else hypr_vars.get("smartSplit", False)
 
     return {
         "windowGapsIn": gaps_in,
@@ -395,8 +395,6 @@ def get_current_settings():
 def apply_settings(payload: dict) -> bool:
     ensure_hypr_config_compatibility()
     cur = get_current_settings()
-    orig_layout = cur.get("layout")
-    orig_ss = cur.get("smartSplit")
     cur.update(payload)
 
     # Normalize values
@@ -471,8 +469,7 @@ return "ok"
     existing_vars["smartSplit"] = smart_split
 
     write_hypr_vars_file(existing_vars)
-    if orig_layout != layout or orig_ss != smart_split:
-        write_hypr_user_file(layout=layout, smart_split=smart_split)
+    write_hypr_user_file(layout=layout, smart_split=smart_split)
 
     return ok
 

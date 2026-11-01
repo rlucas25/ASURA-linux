@@ -13,7 +13,12 @@ Singleton {
     property var allTasks: []
     readonly property alias tasks: root.allTasks
     property string configDir: ""
-    readonly property string taskManagerScript: (typeof Quickshell.shellPath === "function") ? Quickshell.shellPath("Services/task_manager.py") : (Quickshell.env("HOME") + "/.config/quickshell/Services/task_manager.py")
+    readonly property string taskManagerScript: {
+        var p = (typeof Quickshell.shellPath === "function")
+            ? Quickshell.shellPath("Services/task_manager.py").toString()
+            : (Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Services/task_manager.py");
+        return p.replace(/^file:\/\//, "").replace(/^file:/, "");
+    }
 
     function getPriorityWeight(p) {
         if (p === "high") return 3;
