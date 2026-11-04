@@ -327,6 +327,10 @@ def main():
     p_record.add_argument("action", nargs="?", default="toggle", choices=["toggle", "start", "stop"], help="Action to execute (default: toggle)")
     p_record.set_defaults(func=lambda args: ipc_call("recorder", args.action))
 
+    p_shortcuts = subparsers.add_parser("shortcuts", help="Toggle or control Keyboard Shortcuts HUD")
+    p_shortcuts.add_argument("action", nargs="?", default="toggle", help="Action to execute (default: toggle)")
+    p_shortcuts.set_defaults(func=lambda args: ipc_call("shortcuts", args.action))
+
     p_toggle = subparsers.add_parser("toggle", help="Toggle an Asura shell module")
     p_toggle.add_argument("target", help="Module target name (e.g. launcher, controlpanel, wallpaper)")
     p_toggle.set_defaults(func=lambda args: ipc_call(args.target, "toggle"))

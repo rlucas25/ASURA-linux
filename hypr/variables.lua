@@ -101,6 +101,7 @@ return {
     -- Asura
     kbLauncher                 = "SUPER + SUPER_L",
     kbWallpaperSelector        = "SUPER + SHIFT + W",
+    kbShortcuts                = "SUPER + slash",
 
     -- Apps
     kbTerminal                 = "SUPER + T",
