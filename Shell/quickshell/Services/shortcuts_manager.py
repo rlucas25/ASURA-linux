@@ -246,6 +246,14 @@ SYSTEM_CATALOG = [
         "var": "kbLock"
     },
     {
+        "id": "kbShortcuts",
+        "category": "menus",
+        "label": "Shortcuts Cheatsheet",
+        "hint": "Displays keyboard shortcuts cheatsheet HUD overlay",
+        "default": "SUPER + slash",
+        "var": "kbShortcuts"
+    },
+    {
         "id": "kbWindowSwitcher",
         "category": "menus",
         "label": "Window Switcher (Alt-Tab)",
