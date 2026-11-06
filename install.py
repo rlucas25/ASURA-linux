@@ -1011,20 +1011,10 @@ def main():
     if not asura_shell_src.exists():
         asura_shell_src = script_dir / "Asura-Shell"
 
-    # Ensure Asura-shell content is actually present (e.g. freshly cloned git repo without --recurse-submodules)
+    # Ensure Asura-shell content is actually present
     if not (asura_shell_src / "cli" / "main.py").exists():
-        print("\nNotice: Asura-shell submodule is not initialized or empty. Fetching files...")
-        if shutil.which("git"):
-            try:
-                if (script_dir / ".git").exists():
-                    subprocess.run(["git", "submodule", "update", "--init", "--recursive"], cwd=script_dir, check=False)
-
-                if not (asura_shell_src / "cli" / "main.py").exists():
-                    if asura_shell_src.exists():
-                        shutil.rmtree(asura_shell_src)
-                    subprocess.run(["git", "clone", "--recurse-submodules", "https://github.com/rlucas25/Asura-shell.git", str(asura_shell_src)], check=False)
-            except Exception as e:
-                print(f"Warning: Could not fetch Asura-shell submodule: {e}")
+        print(f"Error: Asura-shell directory not found in: {asura_shell_src}", file=sys.stderr)
+        return 1
 
     if asura_shell_src.exists() and (asura_shell_src / "cli" / "main.py").exists():
         asura_dir.parent.mkdir(parents=True, exist_ok=True)
