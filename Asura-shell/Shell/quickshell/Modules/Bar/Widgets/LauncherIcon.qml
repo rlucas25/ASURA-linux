@@ -9,6 +9,7 @@ import qs.Modules.Bar.Widgets
 Item {
     id: root
 
+    readonly property bool isVertical: Config.isBarVertical
     property color textColor: Colors.cfg.text
     property real iconHeight: Math.round(22 * ((typeof Config !== "undefined" && Config.barIconScale !== undefined) ? Config.barIconScale : 1))
     property real iconWidth: Math.round(iconHeight * (710 / 790))
@@ -22,8 +23,8 @@ Item {
         return Qt.resolvedUrl("../../../Assets/ASURA-LOGO.svg").toString();
     }
 
-    implicitWidth: iconWidth
-    implicitHeight: iconHeight
+    implicitWidth: isVertical ? Math.round(22 * Config.barIconScale) : (iconWidth + Math.round(14 * Config.barIconScale))
+    implicitHeight: isVertical ? Math.round(22 * Config.barIconScale) : iconHeight
     Layout.preferredWidth: implicitWidth
     Layout.preferredHeight: implicitHeight
     Layout.alignment: Qt.AlignVCenter
@@ -31,7 +32,9 @@ Item {
     Image {
         id: logoImg
 
-        anchors.fill: parent
+        anchors.centerIn: parent
+        width: root.iconWidth
+        height: root.iconHeight
         source: root.logoPath
         sourceSize.width: 256
         sourceSize.height: 256
