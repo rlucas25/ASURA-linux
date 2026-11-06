@@ -1,0 +1,79 @@
+local vars = require("variables")
+local fn   = require("hyprland.functions")
+local home = os.getenv("HOME") or ""
+
+hl.on("hyprland.start", function()
+    -- Keyring and auth
+    hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
+    local polkit_gnome = "/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1"
+    local f = io.open(polkit_gnome, "r")
+    if f then
+        f:close()
+        hl.exec_cmd(polkit_gnome)
+    else
+        local f_alt = io.open("/usr/libexec/hyprpolkitagent", "r")
+        if f_alt then
+            f_alt:close()
+            hl.exec_cmd("/usr/libexec/hyprpolkitagent")
+        else
+            hl.exec_cmd("systemctl --user start hyprpolkitagent.service")
+        end
+    end
+
+    -- Clipboard history
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")
+
+    -- Auto delete trash 30 days old
+    hl.exec_cmd("trash-empty 30")
+
+    -- Cursors
+    hl.exec_cmd("hyprctl setcursor " .. vars.cursorTheme .. " " .. vars.cursorSize)
+    hl.exec_cmd("gsettings set org.gnome.desktop.interface cursor-theme " .. vars.cursorTheme)
+    hl.exec_cmd("gsettings set org.gnome.desktop.interface cursor-size " .. vars.cursorSize)
+
+    -- Location provider and night light
+    hl.exec_cmd("/usr/lib/geoclue-2.0/demos/agent")
+    hl.exec_cmd("sleep 1 && gammastep")
+
+    -- Forward bluetooth media commands to MPRIS
+    hl.exec_cmd("mpris-proxy")
+
+    -- Idle daemon (hypridle - caffeine disabled by default)
+    hl.exec_cmd("pidof hypridle >/dev/null || hypridle")
+
+    -- Start wallpaper daemon (awww or swww)
+    hl.exec_cmd("bash " .. home .. "/.config/hypr/scripts/wallpaper-daemon.sh &")
+    hl.exec_cmd(home .. "/.local/bin/asura run")
+
+    -- Start hyprland plugins
+    hl.exec_cmd("bash " .. home .. "/.config/hypr/scripts/init-plugins.sh")
+
+    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP")
+    hl.exec_cmd("systemctl --user start hyprland-session.target")
+    hl.exec_cmd("systemctl --user restart xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xdg-desktop-portal")
+    
+end)
+
+-- Resizer listener
+hl.on("window.title", function(win)
+    local d = {
+        hl.dsp.window.float({ action = "on", window = win }),
+        hl.dsp.window.center({ window = win }),
+    }
+    local pip = fn.move_actions(win) or {}
+
+    fn.resizer(win, "Bitwarden", 20, 54, d, true)
+    fn.resizer(win, "Picture[- ]in[- ][Pp]icture", 0, 0, pip, false)
+end)
+
+hl.on("window.open", function(win)
+    local d = {
+        hl.dsp.window.float({ action = "on", window = win }),
+        hl.dsp.window.center({ window = win }),
+    }
+    local pip = fn.move_actions(win) or {}
+
+    fn.resizer(win, "Bitwarden", 20, 54, d, true)
+    fn.resizer(win, "Picture[- ]in[- ][Pp]icture", 0, 0, pip, false)
+end)
