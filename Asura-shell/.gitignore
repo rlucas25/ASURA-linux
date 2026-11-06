@@ -1,0 +1,15 @@
+**/.qmlls.ini
+
+Shell/quickshell/config.json
+Shell/quickshell/tasks.json
+Shell/quickshell/alarms.json
+Shell/quickshell/colors.json
+Shell/quickshell/bar_widgets.json
+Shell/quickshell/Asura/data/
+
+Shell/quickshell/.vscode/
+Shell/quickshell/.agents/
+
+
+__pycache__/
+*.pyc
