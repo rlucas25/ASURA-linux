@@ -1,8 +1,8 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./assetsasura-logo-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="./assetsasura-logo-light.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="./assets/asura-logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="./assets/asura-logo-light.svg">
     <img alt="Asura Logo" src="./assets/asura-logo-light.svg" width="600">
   </picture>
 </p>
