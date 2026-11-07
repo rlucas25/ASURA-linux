@@ -189,7 +189,7 @@ Singleton {
             property int barVisualizerGap: 2
             property int barVisualizerSmoothing: 2
             property string wallpaperFolder: "/Pictures/Wallpapers"
-            property string wallpaper: (typeof Quickshell.shellPath === "function") ? Quickshell.shellPath("Assets/default_wallpaper.jpg").toString().replace(/^file:\/\//, "") : (Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Assets/default_wallpaper.jpg")
+            property string wallpaper: (typeof Quickshell.shellPath === "function") ? Quickshell.shellPath("Assets/Wallpapers/spacex-orbit.jpg").toString().replace(/^file:\/\//, "") : (Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Assets/Wallpapers/spacex-orbit.jpg")
             property var favoriteWallpapers: []
             property var favoritePresets: []
             property string wallpaperAnimation: "wave"

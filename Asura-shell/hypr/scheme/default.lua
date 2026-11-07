@@ -1,5 +1,5 @@
 return {
-    image = (os.getenv("HOME") or "") .. "/.local/share/asura/Shell/quickshell/Assets/default_wallpaper.jpg",
+    image = (os.getenv("HOME") or "") .. "/.local/share/asura/Shell/quickshell/Assets/Wallpapers/spacex-orbit.jpg",
 
     on_tertiary_fixed_variant = "454A72",
 

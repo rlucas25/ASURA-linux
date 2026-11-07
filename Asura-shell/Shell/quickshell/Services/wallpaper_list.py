@@ -37,10 +37,21 @@ def get_wallpapers(folder):
         for ext in patterns:
             files.extend(glob.glob(os.path.join(target, ext)))
 
-    # Fallback to default wallpaper if target folder is currently empty
-    assets_default = os.path.join(home, '.local/share/asura/Shell/quickshell/Assets/default_wallpaper.jpg')
-    if not files and os.path.exists(assets_default):
-        dest = os.path.join(target, 'default_wallpaper.jpg')
+    # Fallback to default wallpapers if target folder is currently empty
+    assets_wallpapers_dir = os.path.join(home, '.local/share/asura/Shell/quickshell/Assets/Wallpapers')
+    assets_default = os.path.join(assets_wallpapers_dir, 'spacex-orbit.jpg')
+    if not files and os.path.exists(assets_wallpapers_dir):
+        for item in sorted(os.listdir(assets_wallpapers_dir)):
+            src_f = os.path.join(assets_wallpapers_dir, item)
+            if os.path.isfile(src_f):
+                dest_f = os.path.join(target, item)
+                try:
+                    shutil.copy2(src_f, dest_f)
+                    files.append(dest_f)
+                except Exception:
+                    files.append(src_f)
+    elif not files and os.path.exists(assets_default):
+        dest = os.path.join(target, 'spacex-orbit.jpg')
         try:
             shutil.copy2(assets_default, dest)
             files.append(dest)

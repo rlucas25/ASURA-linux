@@ -1,5 +1,5 @@
 return {
-    image = "/home/lucas/.local/share/asura/Shell/quickshell/Assets/default_wallpaper.jpg",
+    image = (os.getenv("HOME") or "/home/lucas") .. "/.local/share/asura/Shell/quickshell/Assets/Wallpapers/spacex-orbit.jpg",
 
     inverse_primary = "40637B",
 
