@@ -1,4 +1,4 @@
-
+import "../Components"
 import Qt5Compat.GraphicalEffects
 import QtQuick
 import QtQuick.Controls
@@ -7,7 +7,6 @@ import Quickshell
 import Quickshell.Io
 import qs.Asura
 import qs.Services
-import "../Components"
 
 ColumnLayout {
     id: presetsTabCol
@@ -106,6 +105,7 @@ ColumnLayout {
         title: qsTr("Appearance Presets & Rices")
         description: qsTr("Snapshot and restore your shell style and system settings: Theme, Bar, Windows, Launcher, Monitors, and Input")
         icon: "style"
+
         extraContent: Rectangle {
             implicitHeight: 26
             implicitWidth: countText.implicitWidth + 18
@@ -124,7 +124,9 @@ ColumnLayout {
                 font.bold: true
                 color: Colors.cfg.primary
             }
+
         }
+
     }
 
     Rectangle {
@@ -845,7 +847,7 @@ ColumnLayout {
                         if (presetsTabCol.selectedTabsToSave.length === 0) {
                             presetsTabCol.statusMessage = qsTr("Please select at least one tab to include in preset");
                             statusClearTimer.restart();
-                            return;
+                            return ;
                         }
                         var nameToSave = presetsTabCol.newPresetName.trim();
                         if (!nameToSave)
@@ -1019,7 +1021,7 @@ ColumnLayout {
                             Rectangle {
                                 visible: presetCard.isActiveRice
                                 implicitHeight: 22
-                                implicitWidth: activeBadgeText.implicitWidth + 14
+                                implicitWidth: activeBadgeText.implicitWidth + 28
                                 radius: 11
                                 color: root.color1
 
@@ -1454,6 +1456,7 @@ ColumnLayout {
                                         presetsTabCol.confirmingActionType = "delete";
                                     }
                                 }
+
                             }
 
                         }
@@ -1516,6 +1519,7 @@ ColumnLayout {
                                         presetsTabCol.confirmingActionType = "";
                                     }
                                 }
+
                             }
 
                         }

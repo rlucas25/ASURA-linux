@@ -152,7 +152,7 @@ Item {
 
                         Text {
                             text: "close"
-                    font.family: "Material Symbols Rounded"
+                            font.family: "Material Symbols Rounded"
                             font.pixelSize: 13
                             color: root.foreground
                         }
@@ -293,7 +293,7 @@ Item {
                     Text {
                         Layout.alignment: Qt.AlignHCenter
                         text: "alarm"
-                    font.family: "Material Symbols Rounded"
+                        font.family: "Material Symbols Rounded"
                         font.pixelSize: 52
                         color: Qt.alpha(root.textSecondary, 0.35)
                     }
@@ -402,7 +402,7 @@ Item {
                                 Text {
                                     anchors.centerIn: parent
                                     text: "alarm"
-                    font.family: "Material Symbols Rounded"
+                                    font.family: "Material Symbols Rounded"
                                     font.pixelSize: 18
                                     color: cardRoot.liveAlarm.enabled ? root.primary : root.textSecondary
                                 }
@@ -507,7 +507,7 @@ Item {
                                     Text {
                                         anchors.centerIn: parent
                                         text: "edit"
-                    font.family: "Material Symbols Rounded"
+                                        font.family: "Material Symbols Rounded"
                                         font.pixelSize: 14
                                         color: editH.hovered ? root.primary : root.textSecondary
                                     }
@@ -533,7 +533,7 @@ Item {
                                     Text {
                                         anchors.centerIn: parent
                                         text: "delete"
-                    font.family: "Material Symbols Rounded"
+                                        font.family: "Material Symbols Rounded"
                                         font.pixelSize: 14
                                         color: delH.hovered ? root.errorCol : root.textSecondary
                                     }
@@ -632,7 +632,7 @@ Item {
                             Text {
                                 anchors.centerIn: parent
                                 text: "close"
-                    font.family: "Material Symbols Rounded"
+                                font.family: "Material Symbols Rounded"
                                 font.pixelSize: 12
                                 color: root.textSecondary
                             }
@@ -997,7 +997,7 @@ Item {
 
                                 Text {
                                     text: "edit"
-                    font.family: "Material Symbols Rounded"
+                                    font.family: "Material Symbols Rounded"
                                     font.pixelSize: 13
                                     color: root.textSecondary
                                 }
