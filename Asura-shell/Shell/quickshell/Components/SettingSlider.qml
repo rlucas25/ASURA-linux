@@ -18,7 +18,6 @@ ColumnLayout {
     property real resetValue: 0
     // Adaptability & mode flags
     property bool compact: false
-    property bool vertical: false
     property bool fillHeight: false
     property bool showHeader: !compact && (title !== "" || description !== "" || showReset || (showValue && (title !== "" || description !== "")))
     property bool interactive: true
@@ -31,13 +30,13 @@ ColumnLayout {
     property real stepSize: 1
     property bool animated: true
     // Visual customizations (compact MD3 dimensions)
+    property bool showEndMark: false
     property color activeColor: Colors.cfg.primary
     property color trackColor: Qt.alpha(Colors.cfg.base03, 0.4)
     property color trackBorderColor: Qt.alpha(Colors.cfg.base04, 0.22)
     property real trackBorderWidth: 1
     property bool showTrackBorder: false
     property real trackHeight: 12
-    property real trackWidth: 12
     property real radius: -1
     // Thumb customizations
     property bool showThumb: true
@@ -65,7 +64,7 @@ ColumnLayout {
     signal rightClicked()
 
     Layout.fillWidth: true
-    Layout.fillHeight: vertical || fillHeight
+    Layout.fillHeight: fillHeight
     spacing: showHeader ? 6 : 0
 
     RowLayout {
@@ -292,9 +291,6 @@ ColumnLayout {
         id: trackContainer
 
         readonly property real effectiveTrackHeight: {
-            if (sliderRoot.vertical)
-                return sliderRoot.trackHeight;
-
             var base = sliderRoot.trackHeight;
             if (sliderMa.pressed)
                 return base + 3;
@@ -304,35 +300,14 @@ ColumnLayout {
 
             return base;
         }
-        readonly property real effectiveTrackWidth: {
-            if (!sliderRoot.vertical)
-                return sliderRoot.trackWidth;
-
-            var base = sliderRoot.trackWidth;
-            if (sliderMa.pressed)
-                return base + 3;
-
-            if (sliderMa.containsMouse)
-                return base + 2;
-
-            return base;
-        }
         readonly property real fraction: (sliderRoot.to > sliderRoot.from) ? Math.max(0, Math.min(1, (sliderRoot.value - sliderRoot.from) / (sliderRoot.to - sliderRoot.from))) : 0
-        readonly property real effectiveRadius: {
-            if (sliderRoot.radius >= 0)
-                return sliderRoot.radius;
-
-            if (sliderRoot.vertical)
-                return Math.min(width, height) / 2;
-
-            return height / 2;
-        }
+        readonly property real effectiveRadius: (sliderRoot.radius >= 0) ? sliderRoot.radius : height / 2
 
         Layout.fillWidth: true
-        Layout.fillHeight: sliderRoot.vertical || sliderRoot.fillHeight
+        Layout.fillHeight: sliderRoot.fillHeight
         Layout.alignment: Qt.AlignVCenter
-        implicitHeight: sliderRoot.vertical ? 200 : effectiveTrackHeight
-        implicitWidth: sliderRoot.vertical ? effectiveTrackWidth : 200
+        implicitHeight: effectiveTrackHeight
+        implicitWidth: 200
 
         Rectangle {
             id: inactiveTrack
@@ -363,14 +338,36 @@ ColumnLayout {
         }
 
         Rectangle {
+            id: endMark
+
+            visible: sliderRoot.showEndMark && activeTrack.width < endMark.x
+            color: "transparent"
+            width: ((parent.width + parent.height) / 2) * 0.06
+            height: ((parent.width + parent.height) / 2) * 0.06
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: parent.right
+
+            Rectangle {
+                width: parent.width / 2
+                height: parent.height / 2
+                color: sliderRoot.activeColor
+                anchors.centerIn: parent
+                radius: 100
+            }
+
+        }
+
+        Rectangle {
             id: activeTrack
 
-            visible: !sliderRoot.vertical
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             width: Math.max(0, Math.min(parent.width, parent.width * trackContainer.fraction))
-            radius: trackContainer.effectiveRadius
+            bottomLeftRadius: trackContainer.effectiveRadius
+            topLeftRadius: trackContainer.effectiveRadius
+            bottomRightRadius: trackContainer.fraction < 1 ? 0 : trackContainer.effectiveRadius
+            topRightRadius: trackContainer.fraction < 1 ? 0 : trackContainer.effectiveRadius
             color: sliderRoot.activeColor
 
             Behavior on width {
@@ -393,48 +390,14 @@ ColumnLayout {
 
         }
 
-        Rectangle {
-            id: activeTrackVertical
-
-            visible: sliderRoot.vertical
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            height: Math.max(0, Math.min(parent.height, parent.height * trackContainer.fraction))
-            radius: trackContainer.effectiveRadius
-            color: sliderRoot.activeColor
-
-            Behavior on height {
-                enabled: !sliderMa.pressed && sliderRoot.animated
-
-                NumberAnimation {
-                    duration: 200
-                    easing.type: Easing.OutCubic
-                }
-
-            }
-
-            Behavior on color {
-                ColorAnimation {
-                    duration: 180
-                    easing.type: Easing.OutCubic
-                }
-
-            }
-
-        }
-
-        // Horizontal Thumb & Halo
+        //Thumb & Halo
         Item {
             id: thumbHorizontalWrapper
 
-            visible: !sliderRoot.vertical && sliderRoot.effectiveShowThumb
-            opacity: sliderRoot.effectiveShowThumb ? 1 : 0
-            Behavior on opacity {
-                NumberAnimation { duration: 120; easing.type: Easing.OutCubic }
-            }
+            visible: sliderRoot.effectiveShowThumb
+            opacity: sliderRoot.effectiveShowThumb && trackContainer.fraction < 0.97 ? 1 : 0
             anchors.verticalCenter: parent.verticalCenter
-            x: Math.max(0, Math.min(parent.width - width, (parent.width * trackContainer.fraction) - width / 2))
+            x: Math.max(0, ((parent.width * trackContainer.fraction) - width / 2) + 6)
             width: thumbHorizontal.width
             height: thumbHorizontal.height
 
@@ -474,12 +437,12 @@ ColumnLayout {
 
                 anchors.centerIn: parent
                 width: sliderMa.pressed ? (sliderRoot.thumbWidth + 4) : (sliderMa.containsMouse ? (sliderRoot.thumbWidth + 2) : sliderRoot.thumbWidth)
-                height: (sliderRoot.thumbHeight > 0) ? sliderRoot.thumbHeight : (sliderRoot.fillHeight ? trackContainer.height : (trackContainer.height + (sliderMa.pressed ? 6 : (sliderMa.containsMouse ? 4 : 2))))
+                height: (sliderRoot.thumbHeight > 0) ? sliderRoot.thumbHeight * 1.2 : (sliderRoot.fillHeight ? trackContainer.height : (trackContainer.height + (sliderMa.pressed ? 6 : (sliderMa.containsMouse ? 4 : 2))))
                 radius: Math.min(width, height) / 2
                 color: sliderRoot.thumbColor
                 border.color: sliderRoot.thumbBorderColor
                 border.width: sliderRoot.thumbBorderWidth
-                scale: sliderRoot.fillHeight ? 1.0 : (sliderMa.pressed ? 1.12 : (sliderMa.containsMouse ? 1.05 : 1))
+                scale: sliderRoot.fillHeight ? 1 : (sliderMa.pressed ? 1.12 : (sliderMa.containsMouse ? 1.05 : 1))
 
                 Behavior on width {
                     NumberAnimation {
@@ -516,110 +479,15 @@ ColumnLayout {
 
             }
 
-            Behavior on x {
-                enabled: !sliderMa.pressed && sliderRoot.animated
-
+            Behavior on opacity {
                 NumberAnimation {
-                    duration: 200
+                    duration: 120
                     easing.type: Easing.OutCubic
                 }
 
             }
 
-        }
-
-        // Vertical Thumb & Halo
-        Item {
-            id: thumbVerticalWrapper
-
-            visible: sliderRoot.vertical && sliderRoot.effectiveShowThumb
-            opacity: sliderRoot.effectiveShowThumb ? 1 : 0
-            Behavior on opacity {
-                NumberAnimation { duration: 120; easing.type: Easing.OutCubic }
-            }
-            anchors.horizontalCenter: parent.horizontalCenter
-            y: Math.max(0, Math.min(parent.height - height, (parent.height - (parent.height * trackContainer.fraction)) - height / 2))
-            width: thumbVertical.width
-            height: thumbVertical.height
-
-            Rectangle {
-                id: thumbHaloVert
-
-                anchors.centerIn: parent
-                width: Math.max(24, thumbVertical.width + 4)
-                height: Math.max(24, thumbVertical.height + 10)
-                radius: Math.min(width, height) / 2
-                color: Qt.alpha(sliderRoot.activeColor, sliderMa.pressed ? 0.24 : 0.12)
-                opacity: (sliderMa.containsMouse || sliderMa.pressed) ? 1 : 0
-                scale: sliderMa.pressed ? 1.15 : (sliderMa.containsMouse ? 1 : 0.5)
-
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: 160
-                        easing.type: Easing.OutCubic
-                    }
-
-                }
-
-                Behavior on scale {
-                    NumberAnimation {
-                        duration: 200
-                        easing.type: Easing.OutBack
-                        easing.overshoot: 1.2
-                    }
-
-                }
-
-            }
-
-            Rectangle {
-                id: thumbVertical
-
-                anchors.centerIn: parent
-                height: sliderMa.pressed ? (sliderRoot.thumbWidth + 4) : (sliderMa.containsMouse ? (sliderRoot.thumbWidth + 2) : sliderRoot.thumbWidth)
-                width: (sliderRoot.thumbHeight > 0) ? sliderRoot.thumbHeight : (sliderRoot.fillHeight ? trackContainer.width : (trackContainer.width + (sliderMa.pressed ? 6 : (sliderMa.containsMouse ? 4 : 2))))
-                radius: Math.min(width, height) / 2
-                color: sliderRoot.thumbColor
-                border.color: sliderRoot.thumbBorderColor
-                border.width: sliderRoot.thumbBorderWidth
-                scale: sliderRoot.fillHeight ? 1.0 : (sliderMa.pressed ? 1.12 : (sliderMa.containsMouse ? 1.05 : 1))
-
-                Behavior on height {
-                    NumberAnimation {
-                        duration: 150
-                        easing.type: Easing.OutCubic
-                    }
-
-                }
-
-                Behavior on width {
-                    NumberAnimation {
-                        duration: 150
-                        easing.type: Easing.OutCubic
-                    }
-
-                }
-
-                Behavior on scale {
-                    NumberAnimation {
-                        duration: 180
-                        easing.type: Easing.OutBack
-                        easing.overshoot: 1.2
-                    }
-
-                }
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 180
-                        easing.type: Easing.OutCubic
-                    }
-
-                }
-
-            }
-
-            Behavior on y {
+            Behavior on x {
                 enabled: !sliderMa.pressed && sliderRoot.animated
 
                 NumberAnimation {
@@ -682,11 +550,7 @@ ColumnLayout {
             id: sliderMa
 
             function calculateValue(mx, my) {
-                var frac;
-                if (sliderRoot.vertical)
-                    frac = Math.max(0, Math.min(1, (height - my) / height));
-                else
-                    frac = Math.max(0, Math.min(1, mx / width));
+                var frac = Math.max(0, Math.min(1, mx / width));
                 var raw = sliderRoot.from + frac * (sliderRoot.to - sliderRoot.from);
                 if (sliderRoot.stepSize > 0) {
                     var inv = 1 / sliderRoot.stepSize;
@@ -747,18 +611,6 @@ ColumnLayout {
         }
 
         Behavior on implicitHeight {
-            enabled: !sliderRoot.vertical
-
-            NumberAnimation {
-                duration: 160
-                easing.type: Easing.OutCubic
-            }
-
-        }
-
-        Behavior on implicitWidth {
-            enabled: sliderRoot.vertical
-
             NumberAnimation {
                 duration: 160
                 easing.type: Easing.OutCubic
