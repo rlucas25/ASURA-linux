@@ -1,9 +1,8 @@
-pragma Singleton
-
 import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Services
+pragma Singleton
 
 Singleton {
     id: root
@@ -11,9 +10,38 @@ Singleton {
     readonly property alias cfg: adapter
     readonly property bool ready: file.loaded
     property bool reloading: false
+    readonly property string wallpaperUrl: toFileUrl(adapter.wallpaper)
+    readonly property string wallpaperCleanPath: toLocalPath(adapter.wallpaper)
+    readonly property real effectiveGeneralOpacity: (adapter.generalOpacity !== undefined && adapter.generalOpacity >= 0) ? Math.max(0, Math.min(1, adapter.generalOpacity)) : 0.85
+    readonly property real effectiveBarOpacity: (adapter.barFollowsGeneralOpacity !== false) ? effectiveGeneralOpacity : ((adapter.opacity !== undefined && adapter.opacity >= 0) ? Math.max(0, Math.min(1, adapter.opacity)) : 1)
+    readonly property string effectiveBlurStrength: (adapter.blurStrength !== undefined) ? adapter.blurStrength : "3"
+    readonly property bool effectiveBarMeltEnabled: (adapter.barMeltEnabled !== undefined) ? adapter.barMeltEnabled : true
+    readonly property int effectiveBarMeltRadius: (adapter.barMeltRadius !== undefined && adapter.barMeltRadius > 0) ? adapter.barMeltRadius : 16
+    readonly property string effectiveBarMeltStyle: (adapter.barMeltStyle !== undefined) ? adapter.barMeltStyle : "organic"
+    readonly property int effectiveGeneralRadius: (adapter.generalRadius !== undefined && adapter.generalRadius >= 0) ? adapter.generalRadius : 20
+    readonly property int effectiveMenuRadius: effectiveGeneralRadius
+    readonly property int effectiveBarCapsuleRadius: (adapter.barFollowsGeneralRadius !== false) ? Math.round(effectiveGeneralRadius * 0.75) : ((adapter.barCapsuleRadius !== undefined && adapter.barCapsuleRadius >= 0) ? adapter.barCapsuleRadius : 15)
+    readonly property int effectiveControlPanelRadius: Math.round(effectiveGeneralRadius * 1.3)
+    readonly property string barPosition: (adapter.barPosition && adapter.barPosition !== "") ? adapter.barPosition : "top"
+    readonly property bool isBarVertical: barPosition === "left" || barPosition === "right"
+    readonly property bool isBarHorizontal: !isBarVertical
+    readonly property int effectiveBarThickness: (adapter.barThickness !== undefined && adapter.barThickness > 0) ? adapter.barThickness : 36
+    readonly property real barScale: effectiveBarThickness / 30
+    readonly property real effectiveBarIconScale: (adapter.barIconScale !== undefined && adapter.barIconScale > 0) ? Math.max(0.6, Math.min(1.6, adapter.barIconScale)) : 1
+    readonly property real barIconScale: effectiveBarIconScale
+    readonly property int effectiveBarEdgeSpacing: (adapter.barEdgeSpacing !== undefined && adapter.barEdgeSpacing >= 0) ? adapter.barEdgeSpacing : 16
+    readonly property int effectiveBarCapsulePadding: (adapter.barCapsulePadding !== undefined && adapter.barCapsulePadding >= 0) ? adapter.barCapsulePadding : 6
+    readonly property int effectiveBarWidgetSpacing: (adapter.barWidgetSpacing !== undefined && adapter.barWidgetSpacing >= 0) ? adapter.barWidgetSpacing : 8
+    readonly property int effectiveBarCapsuleWidgetSpacing: (adapter.barCapsuleWidgetSpacing !== undefined && adapter.barCapsuleWidgetSpacing >= 0) ? adapter.barCapsuleWidgetSpacing : 4
+    readonly property bool effectiveBarWidgetHoverTextEnabled: (adapter.barWidgetHoverTextEnabled !== undefined) ? adapter.barWidgetHoverTextEnabled : true
+    readonly property bool barWidgetHoverTextEnabled: effectiveBarWidgetHoverTextEnabled
+    readonly property bool effectiveBarHoverMenusEnabled: (adapter.barHoverMenusEnabled !== undefined) ? adapter.barHoverMenusEnabled : false
+    readonly property bool barHoverMenusEnabled: effectiveBarHoverMenusEnabled
 
     function toFileUrl(path) {
-        if (!path) return "";
+        if (!path)
+            return "";
+
         var s = path.toString().trim();
         if (s.startsWith("file://")) {
             if (s.startsWith("file://~/")) {
@@ -30,7 +58,9 @@ Singleton {
     }
 
     function toLocalPath(path) {
-        if (!path) return "";
+        if (!path)
+            return "";
+
         var s = path.toString().trim().replace(/^file:\/\//, "").replace(/^file:/, "");
         if (s.startsWith("~/")) {
             var home = Quickshell.env("HOME") || "";
@@ -39,84 +69,63 @@ Singleton {
         return s;
     }
 
-    readonly property string wallpaperUrl: toFileUrl(adapter.wallpaper)
-    readonly property string wallpaperCleanPath: toLocalPath(adapter.wallpaper)
+    function applyEcoMode(enabled) {
+        var isEnabled = (enabled !== undefined) ? (enabled === true) : (adapter.ecoMode === true);
+        if (ecoGameModeProc.running)
+            ecoGameModeProc.running = false;
 
-    readonly property real effectiveGeneralOpacity: (adapter.generalOpacity !== undefined && adapter.generalOpacity >= 0)
-        ? Math.max(0, Math.min(1, adapter.generalOpacity))
-        : 0.85
+        var cmd = isEnabled ? "if [ ! -f /tmp/gamemode_on ]; then bash ~/.config/hypr/scripts/gamemode.sh; fi" : "if [ -f /tmp/gamemode_on ]; then bash ~/.config/hypr/scripts/gamemode.sh; fi";
+        ecoGameModeProc.command = ["bash", "-c", cmd];
+        ecoGameModeProc.running = true;
+    }
 
-    readonly property real effectiveBarOpacity: (adapter.barFollowsGeneralOpacity !== false)
-        ? effectiveGeneralOpacity
-        : ((adapter.opacity !== undefined && adapter.opacity >= 0) ? Math.max(0, Math.min(1, adapter.opacity)) : 1.0)
+    function save() {
+        if (saveDebounceTimer.running)
+            saveDebounceTimer.stop();
 
-    readonly property string effectiveBlurStrength: (adapter.blurStrength !== undefined)
-        ? adapter.blurStrength
-        : "3"
+        if (root.ready)
+            file.writeAdapter();
 
-    readonly property bool effectiveBarMeltEnabled: (adapter.barMeltEnabled !== undefined)
-        ? adapter.barMeltEnabled
-        : true
+    }
 
-    readonly property int effectiveBarMeltRadius: (adapter.barMeltRadius !== undefined && adapter.barMeltRadius > 0)
-        ? adapter.barMeltRadius
-        : 16
+    function saveDebounced(delay) {
+        if (delay !== undefined && delay > 0)
+            saveDebounceTimer.interval = delay;
+        else
+            saveDebounceTimer.interval = 100;
+        saveDebounceTimer.restart();
+    }
 
-    readonly property string effectiveBarMeltStyle: (adapter.barMeltStyle !== undefined)
-        ? adapter.barMeltStyle
-        : "organic"
+    function applyWallpaper() {
+        if (wallpaperService)
+            wallpaperService.applyWallpaper();
 
-    readonly property int effectiveGeneralRadius: (adapter.generalRadius !== undefined && adapter.generalRadius >= 0)
-        ? adapter.generalRadius
-        : 20
+    }
 
-    readonly property int effectiveMenuRadius: effectiveGeneralRadius
+    function reload() {
+        if (saveDebounceTimer.running)
+            saveDebounceTimer.stop();
 
-    readonly property int effectiveBarCapsuleRadius: (adapter.barFollowsGeneralRadius !== false)
-        ? Math.round(effectiveGeneralRadius * 0.75)
-        : ((adapter.barCapsuleRadius !== undefined && adapter.barCapsuleRadius >= 0) ? adapter.barCapsuleRadius : 15)
+        root.reloading = true;
+        file.reload();
+        Qt.callLater(function() {
+            root.reloading = false;
+        });
+    }
 
-    readonly property int effectiveControlPanelRadius: Math.round(effectiveGeneralRadius * 1.3)
+    Component.onCompleted: {
+        if (!file.text())
+            file.writeAdapter();
 
-    readonly property string barPosition: (adapter.barPosition && adapter.barPosition !== "")
-        ? adapter.barPosition
-        : "top"
-    readonly property bool isBarVertical: barPosition === "left" || barPosition === "right"
-    readonly property bool isBarHorizontal: !isBarVertical
-    readonly property int effectiveBarThickness: (adapter.barThickness !== undefined && adapter.barThickness > 0)
-        ? adapter.barThickness
-        : 36
-    readonly property real barScale: effectiveBarThickness / 30.0
-    readonly property real effectiveBarIconScale: (adapter.barIconScale !== undefined && adapter.barIconScale > 0)
-        ? Math.max(0.6, Math.min(1.6, adapter.barIconScale))
-        : 1.0
-    readonly property real barIconScale: effectiveBarIconScale
+        Qt.callLater(function() {
+            if (adapter.wallpaper) {
+                wallpaperService.applyWallpaper();
+                if (adapter.colorsAutoGenerate)
+                    Colors.generateDynamicColors(adapter.wallpaper, adapter.isDarkMode, adapter.scheme);
 
-    readonly property int effectiveBarEdgeSpacing: (adapter.barEdgeSpacing !== undefined && adapter.barEdgeSpacing >= 0)
-        ? adapter.barEdgeSpacing
-        : 16
-
-    readonly property int effectiveBarCapsulePadding: (adapter.barCapsulePadding !== undefined && adapter.barCapsulePadding >= 0)
-        ? adapter.barCapsulePadding
-        : 6
-
-    readonly property int effectiveBarWidgetSpacing: (adapter.barWidgetSpacing !== undefined && adapter.barWidgetSpacing >= 0)
-        ? adapter.barWidgetSpacing
-        : 8
-
-    readonly property int effectiveBarCapsuleWidgetSpacing: (adapter.barCapsuleWidgetSpacing !== undefined && adapter.barCapsuleWidgetSpacing >= 0)
-        ? adapter.barCapsuleWidgetSpacing
-        : 4
-
-    readonly property bool effectiveBarWidgetHoverTextEnabled: (adapter.barWidgetHoverTextEnabled !== undefined)
-        ? adapter.barWidgetHoverTextEnabled
-        : true
-    readonly property bool barWidgetHoverTextEnabled: effectiveBarWidgetHoverTextEnabled
-
-    readonly property bool effectiveBarHoverMenusEnabled: (adapter.barHoverMenusEnabled !== undefined)
-        ? adapter.barHoverMenusEnabled
-        : false
-    readonly property bool barHoverMenusEnabled: effectiveBarHoverMenusEnabled
+            }
+        });
+    }
 
     WallpaperService {
         id: wallpaperService
@@ -124,28 +133,29 @@ Singleton {
 
     FileView {
         id: file
+
         path: Quickshell.env("HOME") + "/.config/asura/config.json"
         watchChanges: true
         preload: true
         blockLoading: true
-
         onFileChanged: reload()
         onLoadFailed: (error) => {
             if (error === FileViewError.FileNotFound)
-                file.writeAdapter()
+                file.writeAdapter();
             else
-                reload()
+                reload();
         }
 
         JsonAdapter {
             id: adapter
+
             property string barPosition: "top"
             property int barThickness: 36
-            property real barIconScale: 1.0
+            property real barIconScale: 1
             property int barMode: 1
             property bool exclusiveMode: true
             property bool autoHide: false
-            property real opacity: 1.0
+            property real opacity: 1
             property real generalOpacity: 0.85
             property bool barFollowsGeneralOpacity: true
             property bool blurEnabled: true
@@ -172,7 +182,8 @@ Singleton {
             property bool isDarkMode: true
             property bool appThemingEnabled: true
             property var disabledTemplates: []
-            property var defaultApps: ({})
+            property var defaultApps: ({
+            })
             property string clockFormat: "time_calendar"
             property bool clock24h: false
             property bool weekStartsOnMonday: false
@@ -205,7 +216,7 @@ Singleton {
             property string notificationPosition: "top_right"
             property bool notificationPrivacy: false
             property bool ecoMode: false
-            property bool autoUpdate: false
+            property bool autoUpdate: true
             property int workspacesCount: 3
             property bool workspacesShowNumbers: true
             property string workspacesNumberStyle: "roman"
@@ -213,129 +224,66 @@ Singleton {
             property var customKeybinds: []
 
             onIsDarkModeChanged: {
-                if (root.ready && adapter.colorsAutoGenerate && adapter.wallpaper) {
+                if (root.ready && adapter.colorsAutoGenerate && adapter.wallpaper)
                     Colors.generateDynamicColors(adapter.wallpaper, adapter.isDarkMode, adapter.scheme);
-                }
-            }
 
+            }
             onSchemeChanged: {
-                if (root.ready && adapter.colorsAutoGenerate && adapter.wallpaper) {
+                if (root.ready && adapter.colorsAutoGenerate && adapter.wallpaper)
                     Colors.generateDynamicColors(adapter.wallpaper, adapter.isDarkMode, adapter.scheme);
-                }
-            }
 
+            }
             onThemeChanged: {
-                if (root.ready && !root.reloading && adapter.theme && !adapter.colorsAutoGenerate) {
+                if (root.ready && !root.reloading && adapter.theme && !adapter.colorsAutoGenerate)
                     Colors.loadPalette(adapter.theme);
-                }
-            }
 
+            }
             onPrimarySlotChanged: {
                 if (root.ready && adapter.primarySlot) {
-                    if (typeof Colors !== "undefined" && Colors.primarySlot !== adapter.primarySlot) {
+                    if (typeof Colors !== "undefined" && Colors.primarySlot !== adapter.primarySlot)
                         Colors.setPrimarySlot(adapter.primarySlot);
-                    }
+
                 }
             }
-
             onWallpaperChanged: {
                 if (root.ready && !root.reloading) {
-                    if (adapter.colorsAutoGenerate && adapter.wallpaper) {
+                    if (adapter.colorsAutoGenerate && adapter.wallpaper)
                         Colors.generateDynamicColors(adapter.wallpaper, adapter.isDarkMode, adapter.scheme);
-                    }
+
                     Qt.callLater(function() {
                         wallpaperService.applyWallpaper();
                     });
                 }
             }
-
             onLauncherHiddenAppsChanged: {
             }
-
             onEcoModeChanged: {
-                if (root.ready && !root.reloading) {
+                if (root.ready && !root.reloading)
                     root.applyEcoMode(adapter.ecoMode);
-                }
+
             }
         }
+
     }
 
     // Debounce timer for continuous inputs (sliders, position updates)
     Timer {
         id: saveDebounceTimer
+
         interval: 100
         repeat: false
         onTriggered: {
-            if (root.ready) {
+            if (root.ready)
                 file.writeAdapter();
-            }
+
         }
     }
 
     Process {
         id: ecoGameModeProc
+
         running: false
         onExited: running = false
     }
 
-    function applyEcoMode(enabled) {
-        var isEnabled = (enabled !== undefined) ? (enabled === true) : (adapter.ecoMode === true);
-        if (ecoGameModeProc.running) {
-            ecoGameModeProc.running = false;
-        }
-        var cmd = isEnabled
-            ? "if [ ! -f /tmp/gamemode_on ]; then bash ~/.config/hypr/scripts/gamemode.sh; fi"
-            : "if [ -f /tmp/gamemode_on ]; then bash ~/.config/hypr/scripts/gamemode.sh; fi";
-        ecoGameModeProc.command = ["bash", "-c", cmd];
-        ecoGameModeProc.running = true;
-    }
-
-    function save() {
-        if (saveDebounceTimer.running) {
-            saveDebounceTimer.stop();
-        }
-        if (root.ready) {
-            file.writeAdapter();
-        }
-    }
-
-    function saveDebounced(delay) {
-        if (delay !== undefined && delay > 0) {
-            saveDebounceTimer.interval = delay;
-        } else {
-            saveDebounceTimer.interval = 100;
-        }
-        saveDebounceTimer.restart();
-    }
-
-    function applyWallpaper() {
-        if (wallpaperService) {
-            wallpaperService.applyWallpaper();
-        }
-    }
-
-    function reload() {
-        if (saveDebounceTimer.running) {
-            saveDebounceTimer.stop();
-        }
-        root.reloading = true;
-        file.reload();
-        Qt.callLater(function() {
-            root.reloading = false;
-        });
-    }
-
-    Component.onCompleted: {
-        if (!file.text()) {
-            file.writeAdapter();
-        }
-        Qt.callLater(function() {
-            if (adapter.wallpaper) {
-                wallpaperService.applyWallpaper();
-                if (adapter.colorsAutoGenerate) {
-                    Colors.generateDynamicColors(adapter.wallpaper, adapter.isDarkMode, adapter.scheme);
-                }
-            }
-        });
-    }
 }
