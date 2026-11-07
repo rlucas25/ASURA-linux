@@ -1571,7 +1571,7 @@ PanelWindow {
                                 spacing: 1
 
                                 Text {
-                                    text: Qt.formatTime(root.currentTime, root.clock24h ? "HH" : "hh")
+                                    text: Qt.formatTime(root.currentTime, root.clock24h ? "HH" : "hh AP").split(" ")[0]
                                     font.family: "Google Sans"
                                     font.pixelSize: Math.round(36 * root.uiScale)
                                     font.weight: Font.Medium
