@@ -471,6 +471,14 @@ PanelWindow {
                         source: "file://" + Quickshell.env("HOME") + "/.face.icon"
                         fillMode: Image.PreserveAspectCrop
                         visible: false
+
+                        onStatusChanged: {
+                            if (status === Image.Error && source.toString().indexOf(".face.icon") !== -1) {
+                                if (typeof Quickshell.shellPath === "function") {
+                                    source = Quickshell.shellPath("Assets/default_user.png");
+                                }
+                            }
+                        }
                     }
 
                     Rectangle {
