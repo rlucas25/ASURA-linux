@@ -60,6 +60,13 @@ Singleton {
     property string connectingAddress: ""
     property string statusMessage: ""
 
+    readonly property string scriptPath: {
+        var p = (typeof Quickshell.shellPath === "function")
+            ? Quickshell.shellPath("Services/bluetooth_manager.py").toString()
+            : (Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Services/bluetooth_manager.py");
+        return p.replace(/^file:\/\//, "").replace(/^file:/, "");
+    }
+
     Timer {
         id: statusResetTimer
         interval: 3500
@@ -83,13 +90,36 @@ Singleton {
     }
 
     Process {
-        id: cmdProc
+        id: scanProc
         command: []
     }
 
     Process {
-        id: scanProc
-        command: []
+        id: stopScanProc
+        command: ["bluetoothctl", "scan", "off"]
+        running: false
+    }
+
+    Process {
+        id: actionProc
+        property var callback: null
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let parsed = null;
+                try {
+                    if (this.text && this.text.trim().length > 0) {
+                        parsed = JSON.parse(this.text.trim());
+                    }
+                } catch (e) {
+                    console.warn("BluetoothService action parse error:", e, this.text);
+                }
+                if (actionProc.callback) {
+                    actionProc.callback(parsed);
+                    actionProc.callback = null;
+                }
+            }
+        }
     }
 
     function findDevice(mac) {
@@ -107,10 +137,15 @@ Singleton {
                 try { adapter.powered = newState; } catch (e) {}
             }
         }
-        cmdProc.running = false;
-        cmdProc.command = ["bluetoothctl", "power", newState ? "on" : "off"];
-        cmdProc.running = true;
         showStatus(newState ? "Enabling Bluetooth..." : "Disabling Bluetooth...");
+        actionProc.command = [
+            "python3",
+            root.scriptPath,
+            "power",
+            newState ? "on" : "off"
+        ];
+        actionProc.callback = function(res) {};
+        actionProc.running = true;
     }
 
     function startScan() {
@@ -150,9 +185,7 @@ Singleton {
 
         // 2. Stop CLI scan process
         scanProc.running = false;
-        cmdProc.running = false;
-        cmdProc.command = ["bluetoothctl", "scan", "off"];
-        cmdProc.running = true;
+        stopScanProc.running = true;
         showStatus("Search completed.");
     }
 
@@ -168,50 +201,86 @@ Singleton {
         if (!mac) return;
         connectingAddress = mac;
         showStatus("Connecting to " + mac + "...");
-        var dev = findDevice(mac);
-        if (dev && typeof dev.connect === "function") {
-            try { dev.connect(); } catch (e) {}
-        }
-        cmdProc.running = false;
-        cmdProc.command = ["bluetoothctl", "connect", mac];
-        cmdProc.running = true;
+
+        actionProc.command = [
+            "python3",
+            root.scriptPath,
+            "connect",
+            mac
+        ];
+        actionProc.callback = function(res) {
+            connectingAddress = "";
+            if (res && res.success) {
+                showStatus("Connected!");
+            } else {
+                showStatus("Connection failed.");
+            }
+        };
+        actionProc.running = true;
     }
 
     function disconnectDevice(mac) {
         if (!mac) return;
         showStatus("Disconnecting...");
-        var dev = findDevice(mac);
-        if (dev && typeof dev.disconnect === "function") {
-            try { dev.disconnect(); } catch (e) {}
-        }
-        cmdProc.running = false;
-        cmdProc.command = ["bluetoothctl", "disconnect", mac];
-        cmdProc.running = true;
+
+        actionProc.command = [
+            "python3",
+            root.scriptPath,
+            "disconnect",
+            mac
+        ];
+        actionProc.callback = function(res) {
+            showStatus("Disconnected.");
+        };
+        actionProc.running = true;
     }
 
     function pairDevice(mac) {
         if (!mac) return;
         connectingAddress = mac;
         showStatus("Pairing...");
-        var dev = findDevice(mac);
-        if (dev && typeof dev.pair === "function") {
-            try { dev.pair(); } catch (e) {}
+
+        // Temporarily pause scan in UI so RF channel stays clear for handshake
+        if (root.isScanning) {
+            root.stopScan();
         }
-        cmdProc.running = false;
-        cmdProc.command = ["bash", "-c", "bluetoothctl pair " + mac + " && bluetoothctl trust " + mac + " && bluetoothctl connect " + mac];
-        cmdProc.running = true;
+
+        actionProc.command = [
+            "python3",
+            root.scriptPath,
+            "pair",
+            mac
+        ];
+        actionProc.callback = function(res) {
+            connectingAddress = "";
+            if (res && res.success) {
+                if (res.connected) {
+                    showStatus("Paired and connected!");
+                } else {
+                    showStatus("Paired successfully.");
+                }
+            } else {
+                var err = (res && res.error) ? res.error : "Pairing failed.";
+                showStatus(err);
+            }
+        };
+        actionProc.running = true;
     }
 
     function removeDevice(mac) {
         if (!mac) return;
         showStatus("Removing device...");
-        var dev = findDevice(mac);
-        if (dev && typeof dev.forget === "function") {
-            try { dev.forget(); } catch (e) {}
-        }
-        cmdProc.running = false;
-        cmdProc.command = ["bluetoothctl", "remove", mac];
-        cmdProc.running = true;
+
+        actionProc.command = [
+            "python3",
+            root.scriptPath,
+            "remove",
+            mac
+        ];
+        actionProc.callback = function(res) {
+            showStatus("Device removed.");
+        };
+        actionProc.running = true;
     }
 
     function getDeviceIcon(iconName, name) {
