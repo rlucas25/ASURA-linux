@@ -61,7 +61,7 @@ Scope {
                 return "brightness_7";
             }
 
-            implicitWidth: verticalMode ? 50 : 340
+            implicitWidth: verticalMode ? 66 : 340
             implicitHeight: verticalMode ? 300 : 54
             color: "transparent"
             exclusiveZone: 0
@@ -92,7 +92,7 @@ Scope {
                 width: 0
                 opacity: 0
                 radius: effectiveRadius
-                scale: root.isInteracting ? (osdSlider.pressed ? 0.98 : 1.02) : 1.0
+                scale: root.isInteracting ? (content.isPressed ? 0.98 : 1.02) : 1.0
 
                 Behavior on scale {
                     NumberAnimation {
@@ -115,7 +115,7 @@ Scope {
 
                         PropertyChanges {
                             target: content
-                            width: parent.width
+                            width: verticalMode ? 50 : parent.width
                             opacity: 1
                         }
 
@@ -135,13 +135,16 @@ Scope {
                     }
                 ]
 
-                SettingSlider {
-                    id: osdSlider
+                readonly property real currentFraction: root.verticalMode ? osdSliderVertical.fraction : osdSliderHorizontal.fraction
+                readonly property bool isPressed: root.verticalMode ? osdSliderVertical.pressed : osdSliderHorizontal.pressed
 
+                SettingSlider {
+                    id: osdSliderHorizontal
+
+                    visible: !root.verticalMode
                     anchors.fill: parent
                     compact: true
                     fillHeight: true
-                    vertical: root.verticalMode
                     from: 1
                     to: 100
                     stepSize: 1
@@ -151,7 +154,42 @@ Scope {
                     trackBorderColor: "transparent"
                     radius: content.effectiveRadius
                     thumbWidth: 10
-                    thumbHeight: root.verticalMode ? (content.width > 0 ? content.width : panelWindow.width) : content.height
+                    thumbHeight: content.height
+                    hideThumbAtMax: true
+                    showFloatingTooltip: false
+
+                    onInteractionStarted: {
+                        root.isInteracting = true;
+                        hideTimer.stop();
+                    }
+
+                    onInteractionEnded: {
+                        root.isInteracting = false;
+                        hideTimer.restart();
+                    }
+
+                    onMoved: (val) => {
+                        BrightnessService.setBrightness(Math.round(val));
+                    }
+                }
+
+                VerticalSettingSlider {
+                    id: osdSliderVertical
+
+                    visible: root.verticalMode
+                    anchors.fill: parent
+                    compact: true
+                    fillHeight: true
+                    from: 1
+                    to: 100
+                    stepSize: 1
+                    value: BrightnessService.brightness
+                    activeColor: root.color1
+                    trackColor: "transparent"
+                    trackBorderColor: "transparent"
+                    radius: content.effectiveRadius
+                    thumbWidth: 10
+                    thumbHeight: (content.width > 0 ? content.width : panelWindow.width)
                     hideThumbAtMax: true
                     showFloatingTooltip: false
 
@@ -183,7 +221,7 @@ Scope {
                     Text {
                         anchors.centerIn: parent
                         text: panelWindow.icon
-                        color: osdSlider.fraction > 0.15 ? root.background : root.color1
+                        color: content.currentFraction > 0.15 ? root.background : root.color1
 
                         font {
                             pixelSize: 22

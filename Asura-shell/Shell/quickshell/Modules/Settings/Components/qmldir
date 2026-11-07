@@ -1,7 +1,6 @@
 SettingCard 1.0 SettingCard.qml
 SettingSectionHeader 1.0 SettingSectionHeader.qml
 SettingToggle 1.0 SettingToggle.qml
-SettingSlider 1.0 SettingSlider.qml
 SettingPills 1.0 SettingPills.qml
 SettingButton 1.0 SettingButton.qml
 SettingDivider 1.0 SettingDivider.qml
