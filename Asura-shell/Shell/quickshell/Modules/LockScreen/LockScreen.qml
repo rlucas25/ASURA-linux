@@ -78,7 +78,7 @@ PanelWindow {
 
     function updateClock() {
         var now = new Date();
-        root.currentTime = Qt.formatTime(now, root.clock24h ? "HH:mm" : "hh:mm");
+        root.currentTime = Qt.formatTime(now, root.clock24h ? "HH:mm" : "hh:mm AP").split(" ")[0];
         root.currentPeriod = root.clock24h ? "" : Qt.formatTime(now, "AP");
         root.currentDate = Qt.formatDate(now, "ddd, MMMM d");
     }
