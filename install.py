@@ -857,6 +857,24 @@ def setup_asura_config():
         except Exception:
             pass
 
+    # Default user avatar / face icon (installed only if ~/.face.icon does not already exist)
+    default_avatar_path = asura_dir / "Shell/quickshell/Assets/default_user.png"
+    if not default_avatar_path.exists():
+        fallback_avatar = script_dir / "Asura-shell/Shell/quickshell/Assets/default_user.png"
+        if fallback_avatar.exists():
+            default_avatar_path = fallback_avatar
+
+    dest_face_icon = home / ".face.icon"
+    dest_face = home / ".face"
+    if default_avatar_path.exists() and not dest_face_icon.exists():
+        try:
+            shutil.copy2(default_avatar_path, dest_face_icon)
+            if not dest_face.exists():
+                shutil.copy2(default_avatar_path, dest_face)
+            print(f"  ✓ Installed default user avatar to: {dest_face_icon}")
+        except Exception as e:
+            print(f"  Notice: Could not copy default avatar: {e}")
+
     # Ensure default screenshots and recordings directories exist
     screenshots_dir = home / "Pictures/Screenshots"
     screenshots_dir.mkdir(parents=True, exist_ok=True)
