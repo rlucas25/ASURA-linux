@@ -319,7 +319,7 @@ Item {
                             Icon {
                                 anchors.centerIn: parent
                                 text: PlayerService.isPlaying ? "pause" : "play_arrow"
-                                fill: 1
+                                fill: 0
                                 weight: 400
                                 font.pixelSize: 16
                                 color: root.textColor
@@ -510,7 +510,7 @@ Item {
                             Icon {
                                 anchors.centerIn: parent
                                 text: "skip_next"
-                                fill: 1
+                                fill: 0
                                 weight: 400
                                 font.pixelSize: 22
                                 color: root.textColor
@@ -578,7 +578,7 @@ Item {
                         anchors.centerIn: parent
                         visible: TimerService.activeMode !== "pomodoro"
                         text: TimerService.activeIcon
-                        fill: 1
+                        fill: 0
                         weight: 300
                         font.pixelSize: 20
                         color: root.textColor
@@ -663,7 +663,7 @@ Item {
                         Icon {
                             anchors.centerIn: parent
                             text: TimerService.activeIsRunning ? "pause" : "play_arrow"
-                            fill: 1
+                            fill: 0
                             weight: 400
                             font.pixelSize: 22
                             color: root.textColor
@@ -705,7 +705,7 @@ Item {
                         anchors.centerIn: parent
                         text: RecorderService.isRecording ? "radio_button_checked" : "screen_record"
                         font.pixelSize: 20
-                        fill: 1
+                        fill: 0
                         weight: 400
                         color: RecorderService.isRecording ? Colors.cfg.error : root.textColor
 
@@ -832,7 +832,7 @@ Item {
                             anchors.centerIn: parent
                             text: RecorderService.isRecording ? "crop_square" : "screen_record"
                             font.pixelSize: 20
-                            fill: 1
+                            fill: 0
                             weight: 400
                             color: RecorderService.isRecording ? Colors.cfg.error : root.textColor
                         }

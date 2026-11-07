@@ -10,7 +10,6 @@ import qs.Components
 import qs.Services
 
 ColumnLayout {
-
     id: tabRoot
 
     property var settingsRoot: null
@@ -40,23 +39,16 @@ ColumnLayout {
     Process {
         id: selectAvatarProc
 
-        command: [
-            "bash", "-c",
-            "FILE=$(zenity --file-selection --title='Select Profile Picture' --file-filter='Images | *.jpg *.jpeg *.png *.webp *.bmp *.svg' 2>/dev/null); " +
-            "if [ -n \"$FILE\" ] && [ -f \"$FILE\" ]; then " +
-            "  cp -f \"$FILE\" \"$HOME/.face.icon\" && " +
-            "  cp -f \"$FILE\" \"$HOME/.face\" && " +
-            "  echo \"$FILE\"; " +
-            "fi"
-        ]
+        command: ["bash", "-c", "FILE=$(zenity --file-selection --title='Select Profile Picture' --file-filter='Images | *.jpg *.jpeg *.png *.webp *.bmp *.svg' 2>/dev/null); " + "if [ -n \"$FILE\" ] && [ -f \"$FILE\" ]; then " + "  cp -f \"$FILE\" \"$HOME/.face.icon\" && " + "  cp -f \"$FILE\" \"$HOME/.face\" && " + "  echo \"$FILE\"; " + "fi"]
 
         stdout: StdioCollector {
             onStreamFinished: {
-                if (text && text.trim().length > 0) {
+                if (text && text.trim().length > 0)
                     tabRoot.avatarReloadToken = Date.now().toString();
-                }
+
             }
         }
+
     }
 
     Timer {
@@ -121,25 +113,20 @@ ColumnLayout {
 
     Item {
         id: wallpaperPreviewCard
+
         Layout.fillWidth: true
         Layout.preferredHeight: 180
 
         Rectangle {
             id: previewBackground
+
             anchors.fill: parent
             radius: 14
             color: root.surfaceContainer
             border.color: previewMouse.containsMouse ? root.color1 : Qt.alpha(root.textColor, 0.12)
             border.width: previewMouse.containsMouse ? 2 : 1
             clip: true
-            scale: previewMouse.pressed ? 0.985 : (previewMouse.containsMouse ? 1.008 : 1.0)
-
-            Behavior on scale {
-                NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
-            }
-            Behavior on border.color {
-                ColorAnimation { duration: 180 }
-            }
+            scale: previewMouse.pressed ? 0.985 : (previewMouse.containsMouse ? 1.008 : 1)
 
             Rectangle {
                 anchors.fill: parent
@@ -154,10 +141,12 @@ ColumnLayout {
                     font.pixelSize: 42
                     color: Qt.alpha(root.color1, 0.4)
                 }
+
             }
 
             Image {
                 id: wallpaperThumbnail
+
                 anchors.fill: parent
                 source: Config.wallpaperUrl
                 fillMode: Image.PreserveAspectCrop
@@ -174,6 +163,7 @@ ColumnLayout {
                     height: previewBackground.height
                     radius: 14
                 }
+
             }
 
             // Darkening overlay on hover
@@ -184,8 +174,13 @@ ColumnLayout {
                 opacity: previewMouse.containsMouse ? 1 : 0
 
                 Behavior on opacity {
-                    NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+                    NumberAnimation {
+                        duration: 180
+                        easing.type: Easing.OutCubic
+                    }
+
                 }
+
             }
 
             // Wallpaper Action Pill (Top Right)
@@ -198,17 +193,11 @@ ColumnLayout {
                 radius: 15
                 color: Qt.alpha(root.color1, 0.92)
                 opacity: (previewMouse.containsMouse && !avatarMouse.containsMouse) ? 1 : 0
-                scale: previewMouse.pressed ? 0.94 : ((previewMouse.containsMouse && !avatarMouse.containsMouse) ? 1.0 : 0.85)
-
-                Behavior on opacity {
-                    NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
-                }
-                Behavior on scale {
-                    NumberAnimation { duration: 200; easing.type: Easing.OutBack; easing.overshoot: 1.2 }
-                }
+                scale: previewMouse.pressed ? 0.94 : ((previewMouse.containsMouse && !avatarMouse.containsMouse) ? 1 : 0.85)
 
                 RowLayout {
                     id: changeWpRow
+
                     anchors.centerIn: parent
                     spacing: 5
 
@@ -226,7 +215,26 @@ ColumnLayout {
                         font.bold: true
                         color: root.foreground
                     }
+
                 }
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 180
+                        easing.type: Easing.OutCubic
+                    }
+
+                }
+
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: 200
+                        easing.type: Easing.OutBack
+                        easing.overshoot: 1.2
+                    }
+
+                }
+
             }
 
             // Current Wallpaper Info Badge
@@ -235,7 +243,7 @@ ColumnLayout {
                 anchors.bottom: parent.bottom
                 anchors.margins: 12
                 implicitHeight: 28
-                implicitWidth: currentWpLabel.implicitWidth + 24
+                implicitWidth: currentWpLabel.implicitWidth + 48
                 radius: 14
                 color: Qt.alpha("#000000", 0.65)
 
@@ -252,6 +260,7 @@ ColumnLayout {
 
                     Text {
                         id: currentWpLabel
+
                         text: Config.wallpaperCleanPath ? Config.wallpaperCleanPath.split('/').pop() : qsTr("No wallpaper selected")
                         font.family: "Google Sans"
                         font.pixelSize: 11
@@ -259,34 +268,34 @@ ColumnLayout {
                         color: "#ffffff"
                         elide: Text.ElideMiddle
                     }
+
                 }
+
             }
 
             // Click Handler across the entire card
             MouseArea {
                 id: previewMouse
+
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    if (root && typeof root.openWallpaperPicker === "function") {
+                    if (root && typeof root.openWallpaperPicker === "function")
                         root.openWallpaperPicker();
-                    }
+
                 }
             }
 
             // Center User Profile Avatar
             Item {
                 id: avatarContainer
+
                 anchors.centerIn: parent
                 width: 86
                 height: 86
                 z: 10
-                scale: avatarMouse.pressed ? 0.94 : (avatarMouse.containsMouse ? 1.05 : 1.0)
-
-                Behavior on scale {
-                    NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
-                }
+                scale: avatarMouse.pressed ? 0.94 : (avatarMouse.containsMouse ? 1.05 : 1)
 
                 // Outer accent ring
                 Rectangle {
@@ -299,14 +308,35 @@ ColumnLayout {
                     border.width: avatarMouse.containsMouse ? 2.5 : 1.5
                     opacity: avatarMouse.containsMouse ? 1 : 0.8
 
-                    Behavior on border.color { ColorAnimation { duration: 180 } }
-                    Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
-                    Behavior on height { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+                    Behavior on border.color {
+                        ColorAnimation {
+                            duration: 180
+                        }
+
+                    }
+
+                    Behavior on width {
+                        NumberAnimation {
+                            duration: 180
+                            easing.type: Easing.OutCubic
+                        }
+
+                    }
+
+                    Behavior on height {
+                        NumberAnimation {
+                            duration: 180
+                            easing.type: Easing.OutCubic
+                        }
+
+                    }
+
                 }
 
                 // Main circular frame
                 Rectangle {
                     id: avatarCircle
+
                     anchors.fill: parent
                     radius: width / 2
                     color: Colors.cfg.surfaceContainer
@@ -316,24 +346,25 @@ ColumnLayout {
 
                     Image {
                         id: avatarImg
+
                         anchors.fill: parent
                         source: tabRoot.avatarSource
                         fillMode: Image.PreserveAspectCrop
                         asynchronous: true
                         cache: false
                         visible: false
-
                         onStatusChanged: {
                             if (status === Image.Error && source.toString().indexOf(".face.icon") !== -1) {
-                                if (typeof Quickshell.shellPath === "function") {
+                                if (typeof Quickshell.shellPath === "function")
                                     source = Quickshell.shellPath("Assets/default_user.png");
-                                }
+
                             }
                         }
                     }
 
                     Rectangle {
                         id: avatarMask
+
                         anchors.fill: parent
                         radius: width / 2
                         visible: false
@@ -358,6 +389,7 @@ ColumnLayout {
                             font.pixelSize: 42
                             color: root.color1
                         }
+
                     }
 
                     // Hover dimming + edit overlay
@@ -366,10 +398,6 @@ ColumnLayout {
                         radius: width / 2
                         color: Qt.rgba(0, 0, 0, 0.48)
                         opacity: avatarMouse.containsMouse ? 1 : 0
-
-                        Behavior on opacity {
-                            NumberAnimation { duration: 160 }
-                        }
 
                         ColumnLayout {
                             anchors.centerIn: parent
@@ -391,13 +419,24 @@ ColumnLayout {
                                 font.bold: true
                                 color: "#ffffff"
                             }
+
                         }
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 160
+                            }
+
+                        }
+
                     }
+
                 }
 
                 // Floating edit badge at bottom-right corner
                 Rectangle {
                     id: avatarBadge
+
                     anchors.right: parent.right
                     anchors.bottom: parent.bottom
                     anchors.margins: -1
@@ -407,11 +446,7 @@ ColumnLayout {
                     color: root.color1
                     border.color: root.surface
                     border.width: 2
-                    scale: avatarMouse.pressed ? 0.9 : (avatarMouse.containsMouse ? 1.15 : 1.0)
-
-                    Behavior on scale {
-                        NumberAnimation { duration: 180; easing.type: Easing.OutBack; easing.overshoot: 1.3 }
-                    }
+                    scale: avatarMouse.pressed ? 0.9 : (avatarMouse.containsMouse ? 1.15 : 1)
 
                     Text {
                         anchors.centerIn: parent
@@ -420,25 +455,61 @@ ColumnLayout {
                         font.pixelSize: 13
                         color: root.foreground
                     }
+
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: 180
+                            easing.type: Easing.OutBack
+                            easing.overshoot: 1.3
+                        }
+
+                    }
+
                 }
 
                 // Dedicated MouseArea for Avatar
                 MouseArea {
                     id: avatarMouse
+
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     preventStealing: true
-
                     onClicked: {
-                        if (selectAvatarProc.running) {
+                        if (selectAvatarProc.running)
                             selectAvatarProc.running = false;
-                        }
+
                         selectAvatarProc.running = true;
                     }
                 }
+
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: 180
+                        easing.type: Easing.OutCubic
+                    }
+
+                }
+
             }
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 180
+                    easing.type: Easing.OutCubic
+                }
+
+            }
+
+            Behavior on border.color {
+                ColorAnimation {
+                    duration: 180
+                }
+
+            }
+
         }
+
     }
 
     Rectangle {
@@ -660,18 +731,19 @@ ColumnLayout {
 
             }
 
-            SettingDivider {}
+            SettingDivider {
+            }
 
             SettingSlider {
                 title: qsTr("Transition Duration")
                 hint: qsTr("Controls how long wallpaper change transitions take in seconds")
                 from: 0.5
-                to: 5.0
+                to: 5
                 stepSize: 0.25
-                value: (Config.cfg && Config.cfg.wallpaperAnimationDuration !== undefined) ? Config.cfg.wallpaperAnimationDuration : 1.0
-                customValueText: (((Config.cfg && Config.cfg.wallpaperAnimationDuration !== undefined) ? Config.cfg.wallpaperAnimationDuration : 1.0)).toFixed(2) + "s"
+                value: (Config.cfg && Config.cfg.wallpaperAnimationDuration !== undefined) ? Config.cfg.wallpaperAnimationDuration : 1
+                customValueText: (((Config.cfg && Config.cfg.wallpaperAnimationDuration !== undefined) ? Config.cfg.wallpaperAnimationDuration : 1)).toFixed(2) + "s"
                 showReset: true
-                resetValue: 1.0
+                resetValue: 1
                 onValueModified: (val) => {
                     Config.cfg.wallpaperAnimationDuration = Math.round(val * 100) / 100;
                     Config.saveDebounced(100);
@@ -740,15 +812,15 @@ ColumnLayout {
             checked: (Config.cfg && Config.cfg.ecoMode !== undefined) ? Config.cfg.ecoMode : false
             onToggled: (newState) => {
                 Config.cfg.ecoMode = newState;
-                if (newState) {
+                if (newState)
                     Config.cfg.blurEnabled = false;
-                } else {
+                else
                     Config.cfg.blurEnabled = true;
-                }
                 Config.save();
                 Config.applyEcoMode(newState);
             }
         }
+
     }
 
     SettingCard {
