@@ -51,8 +51,8 @@ ColumnLayout {
         implicitHeight: heroContentRow.implicitHeight + 36
         radius: 18
         color: root.surface
-        border.color: root.borderCol
-        border.width: 1
+        border.color: "transparent"
+        border.width: 0
 
         RowLayout {
             id: heroContentRow
@@ -359,8 +359,8 @@ ColumnLayout {
         implicitHeight: updateCol.implicitHeight + 32
         radius: 14
         color: root.surface
-        border.color: root.borderCol
-        border.width: 1
+        border.color: "transparent"
+        border.width: 0
 
         ColumnLayout {
             id: updateCol
@@ -635,8 +635,8 @@ ColumnLayout {
         implicitHeight: asuraCol.implicitHeight + 32
         radius: 14
         color: root.surface
-        border.color: root.borderCol
-        border.width: 1
+        border.color: "transparent"
+        border.width: 0
 
         ColumnLayout {
             id: asuraCol

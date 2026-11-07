@@ -23,8 +23,8 @@ Rectangle {
     implicitHeight: contentLayout.implicitHeight + (cardRoot.margins * 2)
     radius: 14
     color: Colors.cfg.surface
-    border.color: cardRoot.flashTint > 0 ? Qt.rgba(Colors.cfg.primary.r, Colors.cfg.primary.g, Colors.cfg.primary.b, Math.max(0.3, cardRoot.flashTint)) : Qt.alpha(Colors.cfg.base03, 0.25)
-    border.width: cardRoot.flashTint > 0 ? 2 : 1
+    border.color: cardRoot.flashTint > 0 ? Qt.rgba(Colors.cfg.primary.r, Colors.cfg.primary.g, Colors.cfg.primary.b, Math.max(0.3, cardRoot.flashTint)) : "transparent"
+    border.width: cardRoot.flashTint > 0 ? 2 : 0
     scale: cardRoot.flashTint > 0 ? (1.0 + (0.015 * cardRoot.flashTint)) : 1.0
 
     Behavior on scale {

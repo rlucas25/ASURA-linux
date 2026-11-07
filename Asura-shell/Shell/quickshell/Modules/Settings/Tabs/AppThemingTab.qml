@@ -290,8 +290,8 @@ ColumnLayout {
                     : (isTplActive ? root.surface : Qt.alpha(root.surface, 0.6))
                 border.color: tplCardMa.containsMouse
                     ? (isTplActive ? Qt.alpha(root.color1, 0.45) : Qt.alpha(root.borderCol, 0.4))
-                    : (isTplActive ? Qt.alpha(root.borderCol, 0.3) : Qt.alpha(root.borderCol, 0.18))
-                border.width: 1
+                    : "transparent"
+                border.width: tplCardMa.containsMouse ? 1 : 0
                 opacity: !Config.cfg.appThemingEnabled ? 0.6 : 1
 
                 RowLayout {

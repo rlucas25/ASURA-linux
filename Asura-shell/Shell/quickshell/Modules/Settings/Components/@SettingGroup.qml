@@ -9,7 +9,7 @@ Item {
     property real bigRadius: 14
     property real smallRadius: 6
     property color groupColor: Colors.cfg.surface
-    property color borderColor: Qt.alpha(Colors.cfg.base03, 0.25)
+    property color borderColor: "transparent"
     property real itemPadding: 12
 
     Layout.fillWidth: true
@@ -32,7 +32,7 @@ Item {
                 implicitHeight: (groupRoot.items[index] ? groupRoot.items[index].implicitHeight : 0) + (groupRoot.itemPadding * 2)
                 color: groupRoot.groupColor
                 border.color: groupRoot.borderColor
-                border.width: 1
+                border.width: 0
 
                 topLeftRadius: isFirst ? groupRoot.bigRadius : groupRoot.smallRadius
                 topRightRadius: isFirst ? groupRoot.bigRadius : groupRoot.smallRadius

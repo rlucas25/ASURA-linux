@@ -538,8 +538,8 @@ ColumnLayout {
         Layout.fillWidth: true
         radius: 14
         color: root.surface
-        border.color: root.borderCol
-        border.width: 1
+        border.color: "transparent"
+        border.width: 0
         implicitHeight: widgetManagerCol.implicitHeight + 28
 
         ColumnLayout {
