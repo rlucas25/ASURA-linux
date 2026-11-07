@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import qs.Asura
+import qs.Components
 import qs.Services
 import "../Components"
 

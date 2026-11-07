@@ -78,8 +78,8 @@ Scope {
             WlrLayershell.namespace: "volumeOSD"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
-            implicitWidth: verticalMode ? 50 : 340
-            implicitHeight: verticalMode ? 300 : 54
+            implicitWidth: verticalMode ? 66 : 340
+            implicitHeight: verticalMode ? 340 : 54
             color: "transparent"
             exclusiveZone: 0
             anchors.right: verticalMode
@@ -95,6 +95,8 @@ Scope {
                     var userR = (typeof Config !== "undefined" && Config.effectiveGeneralRadius !== undefined) ? Config.effectiveGeneralRadius : 20;
                     return Math.max(0, Math.min(maxR, userR));
                 }
+                readonly property real currentFraction: root.verticalMode ? osdSliderVertical.fraction : osdSliderHorizontal.fraction
+                readonly property bool isPressed: root.verticalMode ? osdSliderVertical.pressed : osdSliderHorizontal.pressed
 
                 implicitHeight: verticalMode ? 250 : 44
                 height: implicitHeight
@@ -106,7 +108,7 @@ Scope {
                 width: 0
                 opacity: 0
                 radius: effectiveRadius
-                scale: root.isInteracting ? (osdSlider.pressed ? 0.98 : 1.02) : 1
+                scale: root.isInteracting ? (content.isPressed ? 0.98 : 1.02) : 1
                 Component.onCompleted: content.state = "show"
                 states: [
                     State {
@@ -114,7 +116,7 @@ Scope {
 
                         PropertyChanges {
                             target: content
-                            width: parent.width
+                            width: verticalMode ? 50 : parent.width
                             opacity: 1
                         }
 
@@ -135,12 +137,12 @@ Scope {
                 ]
 
                 SettingSlider {
-                    id: osdSlider
+                    id: osdSliderHorizontal
 
+                    visible: !root.verticalMode
                     anchors.fill: parent
                     compact: true
                     fillHeight: true
-                    vertical: root.verticalMode
                     from: 0
                     to: 100
                     stepSize: 1
@@ -150,7 +152,52 @@ Scope {
                     trackBorderColor: "transparent"
                     radius: content.effectiveRadius
                     thumbWidth: 10
-                    thumbHeight: root.verticalMode ? (content.width > 0 ? content.width : panelWindow.width) : content.height
+                    thumbHeight: content.height
+                    hideThumbAtMax: true
+                    showFloatingTooltip: false
+                    onInteractionStarted: {
+                        root.isInteracting = true;
+                        hideTimer.stop();
+                    }
+                    onInteractionEnded: {
+                        root.isInteracting = false;
+                        hideTimer.restart();
+                    }
+                    onRightClicked: {
+                        if (Pipewire.defaultAudioSink && Pipewire.defaultAudioSink.audio) {
+                            Pipewire.defaultAudioSink.audio.muted = !Pipewire.defaultAudioSink.audio.muted;
+                            hideTimer.restart();
+                        }
+                    }
+                    onMoved: (val) => {
+                        if (!Pipewire.defaultAudioSink || !Pipewire.defaultAudioSink.audio)
+                            return ;
+
+                        var fraction = Math.max(0, Math.min(1, val / 100));
+                        if (Pipewire.defaultAudioSink.audio.muted && fraction > 0)
+                            Pipewire.defaultAudioSink.audio.muted = false;
+
+                        Pipewire.defaultAudioSink.audio.volume = fraction;
+                    }
+                }
+
+                VerticalSettingSlider {
+                    id: osdSliderVertical
+
+                    visible: root.verticalMode
+                    anchors.fill: parent
+                    compact: true
+                    fillHeight: true
+                    from: 0
+                    to: 100
+                    stepSize: 1
+                    value: Pipewire.defaultAudioSink ? Math.round(Pipewire.defaultAudioSink.audio.volume * 100) : 0
+                    activeColor: (panelWindow.muted || panelWindow.volumeLevel === 0) ? root.color2 : root.color1
+                    trackColor: "transparent"
+                    trackBorderColor: "transparent"
+                    radius: content.effectiveRadius
+                    thumbWidth: 10
+                    thumbHeight: (content.width > 0 ? content.width : panelWindow.width)
                     hideThumbAtMax: true
                     showFloatingTooltip: false
                     onInteractionStarted: {
@@ -193,7 +240,7 @@ Scope {
                     Text {
                         anchors.centerIn: parent
                         text: panelWindow.icon
-                        color: (panelWindow.muted || panelWindow.volumeLevel === 0) ? root.color2 : (osdSlider.fraction > 0.15 ? root.background : root.color1)
+                        color: (panelWindow.muted || panelWindow.volumeLevel === 0) ? root.color2 : (content.currentFraction > 0.15 ? root.background : root.color1)
 
                         font {
                             pixelSize: 22

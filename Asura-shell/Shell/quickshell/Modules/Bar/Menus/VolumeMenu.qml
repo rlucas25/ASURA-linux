@@ -5,8 +5,8 @@ import Quickshell
 import Quickshell.Io
 import qs.Animations
 import qs.Asura
-import qs.Services
 import qs.Components
+import qs.Services
 
 Item {
     id: root
@@ -125,6 +125,7 @@ Item {
                         SettingSlider {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 16
+                            showEndMark: true
                             compact: true
                             from: 0
                             to: 100
@@ -134,8 +135,12 @@ Item {
                             trackColor: Qt.alpha(root.textColor, 0.08)
                             radius: 5
                             showFloatingTooltip: false
-                            onMoved: (val) => AudioService.setMasterVolume(Math.round(val))
-                            onValueCommitted: (val) => AudioService.setMasterVolume(Math.round(val))
+                            onMoved: (val) => {
+                                return AudioService.setMasterVolume(Math.round(val));
+                            }
+                            onValueCommitted: (val) => {
+                                return AudioService.setMasterVolume(Math.round(val));
+                            }
                         }
 
                     }
@@ -195,6 +200,7 @@ Item {
                         SettingSlider {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 16
+                            showEndMark: true
                             compact: true
                             from: 0
                             to: 100
@@ -204,8 +210,12 @@ Item {
                             trackColor: Qt.alpha(root.textColor, 0.08)
                             radius: 5
                             showFloatingTooltip: false
-                            onMoved: (val) => AudioService.setMicVolume(Math.round(val))
-                            onValueCommitted: (val) => AudioService.setMicVolume(Math.round(val))
+                            onMoved: (val) => {
+                                return AudioService.setMicVolume(Math.round(val));
+                            }
+                            onValueCommitted: (val) => {
+                                return AudioService.setMicVolume(Math.round(val));
+                            }
                         }
 
                     }
@@ -255,15 +265,20 @@ Item {
                         id: appCardRoot
 
                         required property var modelData
-
                         property int currentVol: appCardRoot.modelData ? (appCardRoot.modelData.volume !== undefined ? appCardRoot.modelData.volume : 100) : 100
                         property bool currentMute: appCardRoot.modelData ? (appCardRoot.modelData.muted !== undefined ? appCardRoot.modelData.muted : false) : false
+
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 52
+                        radius: 12
+                        color: Qt.alpha(root.textColor, 0.04)
+                        border.color: Qt.alpha(root.textColor, 0.08)
 
                         Binding {
                             target: appCardRoot
                             property: "currentVol"
                             value: appCardRoot.modelData ? appCardRoot.modelData.volume : 0
-                            when: !appSliderMouse.pressed
+                            when: !appSlider.pressed
                         }
 
                         Binding {
@@ -271,12 +286,6 @@ Item {
                             property: "currentMute"
                             value: appCardRoot.modelData ? appCardRoot.modelData.muted : false
                         }
-
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 52
-                        radius: 12
-                        color: Qt.alpha(root.textColor, 0.04)
-                        border.color: Qt.alpha(root.textColor, 0.08)
 
                         ColumnLayout {
                             anchors.fill: parent
@@ -341,56 +350,30 @@ Item {
 
                                 }
 
-                                Rectangle {
+                                SettingSlider {
+                                    id: appSlider
+
                                     Layout.fillWidth: true
-                                    Layout.preferredHeight: 15
-                                    radius: 7
-                                    color: "transparent"
-
-                                    Rectangle {
-                                        id: volumeCard
-
-                                        anchors.left: parent.left
-                                        anchors.top: parent.top
-                                        anchors.bottom: parent.bottom
-                                        width: parent.width * (Math.max(0, Math.min(1, appCardRoot.currentVol / 100)))
-                                        radius: 5
-                                        color: appCardRoot.currentMute ? root.secondary : root.primary
+                                    Layout.preferredHeight: 16
+                                    showEndMark: true
+                                    compact: true
+                                    from: 0
+                                    to: 100
+                                    stepSize: 1
+                                    value: appCardRoot.currentVol
+                                    activeColor: appCardRoot.currentMute ? root.secondary : root.primary
+                                    trackColor: Qt.alpha(root.textColor, 0.08)
+                                    radius: 5
+                                    showFloatingTooltip: false
+                                    onMoved: (val) => {
+                                        var pct = Math.round(val);
+                                        appCardRoot.currentVol = pct;
+                                        AudioService.setAppVolume(appCardRoot.modelData.id, pct, appCardRoot.modelData.name);
                                     }
-
-                                    Rectangle {
-                                        visible: appCardRoot.currentVol < 100
-                                        anchors.left: volumeCard.right
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        height: 25
-                                        width: 10
-                                        radius: 5
-                                        color: volumeCard.color
-                                        border.width: 3
-                                        border.color: root.surfaceContainer
+                                    onValueCommitted: (val) => {
+                                        var pct = Math.round(val);
+                                        AudioService.setAppVolume(appCardRoot.modelData.id, pct, appCardRoot.modelData.name);
                                     }
-
-                                    MouseArea {
-                                        id: appSliderMouse
-
-                                        function updateAppVol(mx) {
-                                            var pct = Math.round(Math.max(0, Math.min(1, mx / width)) * 100);
-                                            appCardRoot.currentVol = pct;
-                                            AudioService.setAppVolume(appCardRoot.modelData.id, pct, appCardRoot.modelData.name);
-                                        }
-
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: (mouse) => {
-                                            return updateAppVol(mouse.x);
-                                        }
-                                        onPositionChanged: (mouse) => {
-                                            if (pressed)
-                                                updateAppVol(mouse.x);
-
-                                        }
-                                    }
-
                                 }
 
                             }
