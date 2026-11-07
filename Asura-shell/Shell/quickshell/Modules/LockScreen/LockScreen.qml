@@ -54,6 +54,8 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
     onVisibleChanged: {
+        if (visible)
+            updateClock();
         if (visible && !isUnlocking) {
             root.clearInput();
             root.authError = "";
@@ -82,10 +84,6 @@ PanelWindow {
     }
 
     onClock24hChanged: updateClock()
-    onVisibleChanged: {
-        if (root.visible)
-            updateClock();
-    }
     Component.onCompleted: updateClock()
 
     Timer {
