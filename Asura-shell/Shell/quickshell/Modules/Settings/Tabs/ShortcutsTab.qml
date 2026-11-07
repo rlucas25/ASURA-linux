@@ -298,8 +298,8 @@ ColumnLayout {
                 implicitHeight: 56
                 radius: 12
                 color: cardHover.hovered ? Qt.alpha(Colors.cfg.surfaceContainerHigh, 0.45) : Qt.alpha(Colors.cfg.surface, 0.8)
-                border.color: modelData.isOverridden ? Qt.alpha(Colors.cfg.primary, 0.35) : Qt.alpha(Colors.cfg.border, 0.25)
-                border.width: 1
+                border.color: modelData.isOverridden ? Qt.alpha(Colors.cfg.primary, 0.35) : "transparent"
+                border.width: modelData.isOverridden ? 1 : 0
 
                 HoverHandler { id: cardHover }
 

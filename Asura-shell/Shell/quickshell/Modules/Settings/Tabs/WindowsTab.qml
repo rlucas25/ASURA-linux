@@ -425,8 +425,8 @@ ColumnLayout {
         implicitHeight: gapsCol.implicitHeight + 28
         radius: 14
         color: root.surface
-        border.color: Qt.alpha(root.borderCol, 0.25)
-        border.width: 1
+        border.color: "transparent"
+        border.width: 0
 
         ColumnLayout {
             id: gapsCol
@@ -520,8 +520,8 @@ ColumnLayout {
         implicitHeight: borderCol.implicitHeight + 28
         radius: 14
         color: root.surface
-        border.color: Qt.alpha(root.borderCol, 0.25)
-        border.width: 1
+        border.color: "transparent"
+        border.width: 0
 
         ColumnLayout {
             id: borderCol
@@ -590,8 +590,8 @@ ColumnLayout {
         implicitHeight: shCol.implicitHeight + 28
         radius: 14
         color: root.surface
-        border.color: Qt.alpha(root.borderCol, 0.25)
-        border.width: 1
+        border.color: "transparent"
+        border.width: 0
 
         ColumnLayout {
             id: shCol
@@ -673,8 +673,8 @@ ColumnLayout {
         implicitHeight: layoutCol.implicitHeight + 28
         radius: 14
         color: root.surface
-        border.color: Qt.alpha(root.borderCol, 0.25)
-        border.width: 1
+        border.color: "transparent"
+        border.width: 0
 
         ColumnLayout {
             id: layoutCol

@@ -21,8 +21,8 @@ Rectangle {
     implicitHeight: 82
     radius: 14
     color: cardMa.containsMouse ? Qt.alpha(Colors.cfg.surface, 0.95) : Colors.cfg.surface
-    border.color: cardMa.containsMouse ? Qt.alpha(cardRoot.accentColor, 0.45) : Qt.alpha(Colors.cfg.base03, 0.4)
-    border.width: 1
+    border.color: cardMa.containsMouse ? Qt.alpha(cardRoot.accentColor, 0.45) : "transparent"
+    border.width: cardMa.containsMouse ? 1 : 0
     scale: cardMa.pressed ? 0.98 : (cardMa.containsMouse ? 1.01 : 1.0)
 
     Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }

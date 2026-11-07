@@ -197,8 +197,8 @@ ColumnLayout {
             implicitHeight: 52
             radius: 12
             color: cardHover.hovered ? Qt.alpha(root.color1, 0.08) : root.surfaceContainer
-            border.color: cardHover.hovered ? Qt.alpha(root.color1, 0.4) : Qt.alpha(root.borderCol, 0.35)
-            border.width: 1
+            border.color: cardHover.hovered ? Qt.alpha(root.color1, 0.4) : "transparent"
+            border.width: cardHover.hovered ? 1 : 0
 
             Behavior on color { ColorAnimation { duration: 120 } }
             Behavior on border.color { ColorAnimation { duration: 120 } }
@@ -428,8 +428,8 @@ ColumnLayout {
                 Layout.fillWidth: true
                 radius: 12
                 color: root.surfaceContainer
-                border.color: Qt.alpha(root.borderCol, 0.35)
-                border.width: 1
+                border.color: "transparent"
+                border.width: 0
                 implicitHeight: hiddenSectionCol.implicitHeight + 24
 
                 ColumnLayout {
