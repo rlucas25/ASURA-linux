@@ -51,11 +51,9 @@ ColumnLayout {
             var month = months[d.getMonth()] || "Jan";
             var day = d.getDate();
             var year = d.getFullYear();
-            var hours = d.getHours();
-            var minutes = d.getMinutes();
-            var hStr = (hours < 10 ? "0" : "") + hours;
-            var mStr = (minutes < 10 ? "0" : "") + minutes;
-            return month + " " + day + ", " + year + " " + hStr + ":" + mStr;
+            var is24 = (Config.cfg && Config.cfg.clock24h !== undefined) ? Config.cfg.clock24h : false;
+            var timePart = Qt.formatTime(d, is24 ? "HH:mm" : "hh:mm AP");
+            return month + " " + day + ", " + year + " " + timePart;
         } catch (e) {
             return (isoStr || "").substring(0, 10);
         }

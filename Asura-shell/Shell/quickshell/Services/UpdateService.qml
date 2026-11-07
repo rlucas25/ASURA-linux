@@ -197,9 +197,8 @@ Item {
                 root.lastCheckTimestamp = obj.timestamp || (Date.now() / 1000);
 
                 var d = new Date(root.lastCheckTimestamp * 1000);
-                var hours = ("0" + d.getHours()).slice(-2);
-                var minutes = ("0" + d.getMinutes()).slice(-2);
-                root.lastCheckStr = `${hours}:${minutes}`;
+                var is24 = (Config.cfg && Config.cfg.clock24h !== undefined) ? Config.cfg.clock24h : false;
+                root.lastCheckStr = Qt.formatTime(d, is24 ? "HH:mm" : "hh:mm AP");
 
                 if (root.updateAvailable) {
                     root.statusMessage = qsTr("Update available (%1)").arg(root.latestVersion);

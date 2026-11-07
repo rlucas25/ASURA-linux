@@ -17,8 +17,10 @@ PanelWindow {
     property string typedPassword: ""
     property string authError: ""
     property string currentTime: ""
+    property string currentPeriod: ""
     property string currentDate: ""
     property bool authActive: false
+    readonly property bool clock24h: (Config.cfg && Config.cfg.clock24h !== undefined) ? Config.cfg.clock24h : false
     readonly property bool showAuth: authActive || typedPassword.length > 0 || LockScreenService.isAuthenticating || authError !== ""
 
     readonly property string defaultWallpaperUrl: {
@@ -72,15 +74,32 @@ PanelWindow {
         bottom: true
     }
 
+    function updateClock() {
+        var now = new Date();
+        root.currentTime = Qt.formatTime(now, root.clock24h ? "HH:mm" : "hh:mm");
+        root.currentPeriod = root.clock24h ? "" : Qt.formatTime(now, "AP");
+        root.currentDate = Qt.formatDate(now, "ddd, MMMM d");
+    }
+
+    onClock24hChanged: updateClock()
+    onVisibleChanged: {
+        if (root.visible)
+            updateClock();
+    }
+    Component.onCompleted: updateClock()
+
     Timer {
         interval: 1000
         running: root.visible
         repeat: true
         triggeredOnStart: true
-        onTriggered: {
-            var now = new Date();
-            root.currentTime = Qt.formatTime(now, (Config.cfg && Config.cfg.clock24h) ? "HH:mm" : "hh:mm");
-            root.currentDate = Qt.formatDate(now, "ddd, MMMM d");
+        onTriggered: root.updateClock()
+    }
+
+    Connections {
+        target: Config.cfg
+        function onClock24hChanged() {
+            root.updateClock();
         }
     }
 
@@ -337,14 +356,28 @@ PanelWindow {
                 color: Colors.cfg.primary
             }
 
-            Text {
+            RowLayout {
                 Layout.alignment: Qt.AlignHCenter
-                horizontalAlignment: Text.AlignHCenter
-                text: root.currentTime
-                font.pixelSize: 156
-                font.bold: true
-                font.family: "Google Sans"
-                color: Colors.cfg.textBright
+                spacing: 12
+
+                Text {
+                    text: root.currentTime
+                    font.pixelSize: 156
+                    font.bold: true
+                    font.family: "Google Sans"
+                    color: Colors.cfg.textBright
+                }
+
+                Text {
+                    visible: !root.clock24h
+                    text: root.currentPeriod
+                    font.pixelSize: 42
+                    font.bold: true
+                    font.family: "Google Sans"
+                    color: Colors.cfg.primary
+                    Layout.alignment: Qt.AlignBottom
+                    Layout.bottomMargin: 32
+                }
             }
 
         }
