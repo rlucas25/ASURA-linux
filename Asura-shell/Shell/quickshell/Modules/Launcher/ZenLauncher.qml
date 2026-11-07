@@ -22,6 +22,7 @@ PanelWindow {
     property bool gridMode: false
     property bool helpMode: false
     property var currentTime: new Date()
+    readonly property bool clock24h: (Config.cfg && Config.cfg.clock24h !== undefined) ? Config.cfg.clock24h : false
     property string shellOutput: ""
     property bool showingShellOutput: false
     property string commandSubMode: ""
@@ -1570,7 +1571,7 @@ PanelWindow {
                                 spacing: 1
 
                                 Text {
-                                    text: Qt.formatTime(root.currentTime, "HH")
+                                    text: Qt.formatTime(root.currentTime, root.clock24h ? "HH" : "hh")
                                     font.family: "Google Sans"
                                     font.pixelSize: Math.round(36 * root.uiScale)
                                     font.weight: Font.Medium
@@ -1598,6 +1599,17 @@ PanelWindow {
                                     font.pixelSize: Math.round(36 * root.uiScale)
                                     font.weight: Font.Medium
                                     color: Colors.cfg.text
+                                }
+
+                                Text {
+                                    visible: !root.clock24h
+                                    text: " " + Qt.formatTime(root.currentTime, "AP")
+                                    font.family: "Google Sans"
+                                    font.pixelSize: Math.round(18 * root.uiScale)
+                                    font.weight: Font.Bold
+                                    color: Colors.cfg.primary
+                                    anchors.bottom: parent.bottom
+                                    anchors.bottomMargin: Math.round(4 * root.uiScale)
                                 }
                             }
                         }

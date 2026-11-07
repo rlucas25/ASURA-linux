@@ -284,7 +284,13 @@ Rectangle {
                                         }
 
                                         Text {
-                                            text: (notifCard.modelData && notifCard.modelData.time) ? notifCard.modelData.time : ""
+                                            text: {
+                                                if (notifCard.modelData && notifCard.modelData.timestamp) {
+                                                    var is24 = (Config.cfg && Config.cfg.clock24h !== undefined) ? Config.cfg.clock24h : false;
+                                                    return Qt.formatTime(new Date(notifCard.modelData.timestamp * 1000), is24 ? "HH:mm" : "hh:mm AP");
+                                                }
+                                                return (notifCard.modelData && notifCard.modelData.time) ? notifCard.modelData.time : "";
+                                            }
                                             font.pixelSize: 10
                                             font.family: "Google Sans"
                                             color: Qt.alpha(root.textColor, 0.5)

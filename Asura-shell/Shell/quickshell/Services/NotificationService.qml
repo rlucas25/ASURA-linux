@@ -57,13 +57,15 @@ Singleton {
 
     function addNotification(appName, summary, body, icon) {
         var now = new Date();
-        var timeStr = (now.getHours() < 10 ? "0" : "") + now.getHours() + ":" + (now.getMinutes() < 10 ? "0" : "") + now.getMinutes();
+        var is24 = (Config.cfg && Config.cfg.clock24h !== undefined) ? Config.cfg.clock24h : false;
+        var timeStr = Qt.formatTime(now, is24 ? "HH:mm" : "hh:mm AP");
         var notif = {
             id: Date.now() + Math.random(),
             appName: appName || "Application",
             summary: summary || "Notification",
             body: body || "",
             time: timeStr,
+            timestamp: Date.now() / 1000,
             appIcon: icon || getAppIcon(appName)
         };
 

@@ -421,7 +421,13 @@ Item {
                                 }
 
                                 Text {
-                                    text: delegateItem.modelData.time || ""
+                                    text: {
+                                        if (delegateItem.modelData && delegateItem.modelData.timestamp) {
+                                            var is24 = (Config.cfg && Config.cfg.clock24h !== undefined) ? Config.cfg.clock24h : false;
+                                            return Qt.formatTime(new Date(delegateItem.modelData.timestamp * 1000), is24 ? "HH:mm" : "hh:mm AP");
+                                        }
+                                        return (delegateItem.modelData && delegateItem.modelData.time) ? delegateItem.modelData.time : "";
+                                    }
                                     font.pixelSize: 9
                                     color: root.textMuted
                                 }
