@@ -18,7 +18,7 @@ Item {
         if (cleanWall.indexOf("~/") === 0) {
             cleanWall = Quickshell.env("HOME") + cleanWall.substring(1);
         }
-        var defaultWall = Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Assets/default_wallpaper.jpg";
+        var defaultWall = Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Assets/Wallpapers/spacex-orbit.jpg";
         var anim = root.wallpaperAnimation || "wave";
         var dur = root.wallpaperAnimationDuration || 1;
 

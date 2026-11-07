@@ -839,18 +839,31 @@ def setup_asura_config():
         hypr_user.write_text("-- Custom user Hyprland configurations\n")
         print(f"  ✓ Created default user config file: {hypr_user}")
 
-    # Default wallpaper path (check both installed shell dir and repo script_dir)
-    default_wallpaper_path = asura_dir / "Shell/quickshell/Assets/default_wallpaper.jpg"
-    if not default_wallpaper_path.exists():
-        fallback_src = script_dir / "Asura-shell/Shell/quickshell/Assets/default_wallpaper.jpg"
-        if fallback_src.exists():
-            default_wallpaper_path = fallback_src
+    # Default wallpapers folder in Assets (check both installed shell dir and repo script_dir)
+    assets_wallpapers_dir = asura_dir / "Shell/quickshell/Assets/Wallpapers"
+    if not assets_wallpapers_dir.exists():
+        fallback_wallpapers = script_dir / "Asura-shell/Shell/quickshell/Assets/Wallpapers"
+        if fallback_wallpapers.exists():
+            assets_wallpapers_dir = fallback_wallpapers
 
-    # Copy default wallpaper to ~/Pictures/Wallpapers as well for convenient selection
+    default_wallpaper_path = assets_wallpapers_dir / "spacex-orbit.jpg"
+
+    # Copy all default wallpapers to ~/Pictures/Wallpapers for user selection
     wallpapers_folder = home / "Pictures/Wallpapers"
     wallpapers_folder.mkdir(parents=True, exist_ok=True)
-    dest_wall = wallpapers_folder / "default_wallpaper.jpg"
-    if default_wallpaper_path.exists() and not dest_wall.exists():
+    dest_wall = wallpapers_folder / "spacex-orbit.jpg"
+
+    if assets_wallpapers_dir.exists():
+        for wall_file in sorted(assets_wallpapers_dir.iterdir()):
+            if wall_file.is_file():
+                dest_file = wallpapers_folder / wall_file.name
+                if not dest_file.exists():
+                    try:
+                        shutil.copy2(wall_file, dest_file)
+                        print(f"  ✓ Copied default wallpaper to: {dest_file}")
+                    except Exception:
+                        pass
+    elif default_wallpaper_path.exists() and not dest_wall.exists():
         try:
             shutil.copy2(default_wallpaper_path, dest_wall)
             print(f"  ✓ Copied default wallpaper to: {dest_wall}")
@@ -970,7 +983,7 @@ def setup_asura_config():
                     if subprocess.run([awww_bin, "query"], capture_output=True).returncode == 0:
                         break
                     time.sleep(0.1)
-                target_wall = wallpapers_folder / "default_wallpaper.jpg"
+                target_wall = wallpapers_folder / "spacex-orbit.jpg"
                 if not target_wall.exists():
                     target_wall = default_wallpaper_path
                 if target_wall.exists():

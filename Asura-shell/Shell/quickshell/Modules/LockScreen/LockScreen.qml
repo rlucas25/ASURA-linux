@@ -23,8 +23,8 @@ PanelWindow {
 
     readonly property string defaultWallpaperUrl: {
         var p = (typeof Quickshell.shellPath === "function")
-            ? Quickshell.shellPath("Assets/default_wallpaper.jpg").toString()
-            : (Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Assets/default_wallpaper.jpg");
+            ? Quickshell.shellPath("Assets/Wallpapers/spacex-orbit.jpg").toString()
+            : (Quickshell.env("HOME") + "/.local/share/asura/Shell/quickshell/Assets/Wallpapers/spacex-orbit.jpg");
         return p.startsWith("file://") ? p : ("file://" + p);
     }
 
