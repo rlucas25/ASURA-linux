@@ -5,9 +5,9 @@ local fn   = require("hyprland.functions")
 -- ASURA
 hl.bind("ALT + Tab", hl.dsp.exec_cmd("asura switcher next"))
 hl.bind("ALT + SHIFT + Tab", hl.dsp.exec_cmd("asura switcher prev"))
---hl.bind("SUPER + O", function()
---    hl.plugin.scrolloverview.overview("toggle all")
---end)
+hl.bind("SUPER + O", function()
+    hl.plugin.scrolloverview.overview("toggle all")
+end)
 
 hl.bind("SUPER + A", hl.dsp.exec_cmd("asura controlpanel"))
 hl.bind("SUPER + P", hl.dsp.exec_cmd("asura player"))
