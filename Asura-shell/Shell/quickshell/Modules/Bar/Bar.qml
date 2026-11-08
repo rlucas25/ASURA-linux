@@ -67,6 +67,9 @@ PanelWindow {
     property real contentSpan: mode == 0 ? (screen.width * widthStages) : screen.width
     property real contentWidth: root.contentSpan
     property real contentHeight: root.barThickness
+    readonly property int islandCapsuleRadius: mode !== 1 ? Math.min(15, Config.effectiveBarCapsuleRadius) : 0
+    readonly property int safeIslandMeltSize: Math.max(0, Math.min(Config.effectiveBarMeltRadius, root.barThickness - root.islandCapsuleRadius) + 5)
+    readonly property int safeCapsuleMeltSize: Math.max(0, Math.min(Config.effectiveBarMeltRadius, root.barThickness - Config.effectiveBarCapsuleRadius) + 5)
     property color backgroundBar: mode <= 1 ? "transparent" : root.barBackground
     property color primary: Colors.cfg.primary
     property color secondary: Colors.cfg.secondary
@@ -794,9 +797,10 @@ PanelWindow {
         layer.smooth: true
 
         ConcaveCorner {
+            // Island mode, top bar, left side
             visible: root.barPosition === "top" && mode === 0 && (Config.cfg && Config.cfg.barMeltEnabled !== false)
-            width: Config.effectiveBarMeltRadius
-            height: root.barThickness
+            width: root.safeIslandMeltSize
+            height: root.safeIslandMeltSize
             anchors.top: capsulesContainer.top
             anchors.right: capsulesContainer.left
             anchors.rightMargin: 0
@@ -805,9 +809,10 @@ PanelWindow {
         }
 
         ConcaveCorner {
+            // Island mode, top bar, right side
             visible: root.barPosition === "top" && mode === 0 && (Config.cfg && Config.cfg.barMeltEnabled !== false)
-            width: Config.effectiveBarMeltRadius
-            height: root.barThickness
+            width: root.safeIslandMeltSize
+            height: root.safeIslandMeltSize
             anchors.top: capsulesContainer.top
             anchors.left: capsulesContainer.right
             anchors.leftMargin: 0
@@ -816,9 +821,10 @@ PanelWindow {
         }
 
         ConcaveCorner {
+            // Island mode, bottom bar, left side
             visible: root.barPosition === "bottom" && mode === 0 && (Config.cfg && Config.cfg.barMeltEnabled !== false)
-            width: Config.effectiveBarMeltRadius
-            height: root.barThickness
+            width: root.safeIslandMeltSize
+            height: root.safeIslandMeltSize
             anchors.bottom: capsulesContainer.bottom
             anchors.right: capsulesContainer.left
             anchors.rightMargin: 0
@@ -827,9 +833,10 @@ PanelWindow {
         }
 
         ConcaveCorner {
+            // Island mode, bottom bar, right side
             visible: root.barPosition === "bottom" && mode === 0 && (Config.cfg && Config.cfg.barMeltEnabled !== false)
-            width: Config.effectiveBarMeltRadius
-            height: root.barThickness
+            width: root.safeIslandMeltSize
+            height: root.safeIslandMeltSize
             anchors.bottom: capsulesContainer.bottom
             anchors.left: capsulesContainer.right
             anchors.leftMargin: 0
@@ -925,20 +932,54 @@ PanelWindow {
             }
 
             ConcaveCorner {
+                // Left top right
                 visible: root.barPosition === "top" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && (leftOpen || leftCapsule.height > (root.barThickness + 0.5) || (mode === 2 && root.hasLeftWidgets))
-                width: Config.effectiveBarMeltRadius
-                height: root.barThickness
+                width: (leftOpen || leftCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
+                height: (leftOpen || leftCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
                 anchors.top: leftCapsule.top
                 anchors.left: leftCapsule.right
                 anchors.leftMargin: -1
+                anchors.topMargin: root.mode !== 2 && (leftOpen || leftCapsule.height > (root.barThickness * 2)) ? root.barThickness : 0
                 color: root.barBackground
                 position: "topLeft"
+
+                Behavior on anchors.topMargin {
+                    NumberAnimation {
+                        duration: 400
+                        easing.type: Easing.OutExpo
+                    }
+
+                }
+
             }
 
             ConcaveCorner {
-                visible: root.barPosition === "top" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && mode != 0 && (leftOpen || leftCapsule.height > (root.barThickness + 0.5) || (mode >= 1 && (mode !== 2 || root.hasLeftWidgets)))
+                // Left bottom right
+                visible: root.barPosition === "bottom" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && (leftOpen || leftCapsule.height > (root.barThickness + 0.5) || (mode === 2 && root.hasLeftWidgets))
+                width: (leftOpen || leftCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
+                height: (leftOpen || leftCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
+                anchors.bottom: leftCapsule.bottom
+                anchors.left: leftCapsule.right
+                anchors.leftMargin: -1
+                anchors.bottomMargin: root.mode !== 2 && (leftOpen || leftCapsule.height > (root.barThickness * 2)) ? root.barThickness : 0
+                color: root.barBackground
+                position: "bottomLeft"
+
+                Behavior on anchors.bottomMargin {
+                    NumberAnimation {
+                        duration: 400
+                        easing.type: Easing.OutExpo
+                    }
+
+                }
+
+            }
+
+            ConcaveCorner {
+                // Left screen-edge melt (top bar)
+                visible: root.barPosition === "top" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && mode !== 0 && leftCapsule.visible
                 width: Config.effectiveBarMeltRadius
-                height: root.barThickness
+                height: Config.effectiveBarMeltRadius
                 anchors.top: leftCapsule.bottom
                 anchors.left: leftCapsule.left
                 anchors.topMargin: 0
@@ -947,20 +988,10 @@ PanelWindow {
             }
 
             ConcaveCorner {
-                visible: root.barPosition === "bottom" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && (leftOpen || leftCapsule.height > (root.barThickness + 0.5) || (mode === 2 && root.hasLeftWidgets))
+                // Left screen-edge melt (bottom bar)
+                visible: root.barPosition === "bottom" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && mode !== 0 && leftCapsule.visible
                 width: Config.effectiveBarMeltRadius
-                height: root.barThickness
-                anchors.bottom: leftCapsule.bottom
-                anchors.left: leftCapsule.right
-                anchors.leftMargin: -1
-                color: root.barBackground
-                position: "bottomLeft"
-            }
-
-            ConcaveCorner {
-                visible: root.barPosition === "bottom" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && mode != 0 && (leftOpen || leftCapsule.height > (root.barThickness + 0.5) || (mode >= 1 && (mode !== 2 || root.hasLeftWidgets)))
-                width: Config.effectiveBarMeltRadius
-                height: root.barThickness
+                height: Config.effectiveBarMeltRadius
                 anchors.bottom: leftCapsule.top
                 anchors.left: leftCapsule.left
                 anchors.bottomMargin: 0
@@ -1039,13 +1070,14 @@ PanelWindow {
             }
 
             ConcaveCorner {
+                // Center top left
                 visible: root.barPosition === "top" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && (centerOpen || centerCapsule.height > (root.barThickness + 0.5) || (mode === 2 && root.hasCenterWidgets))
-                width: Config.effectiveBarMeltRadius
-                height: (root.mode !== 2 && (centerOpen || centerCapsule.height > (root.barThickness + 0.5))) ? Config.effectiveBarMeltRadius : Math.min(root.barThickness, Config.effectiveBarMeltRadius)
+                width: (centerOpen || centerCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
+                height: (centerOpen || centerCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
                 anchors.top: centerCapsule.top
                 anchors.right: centerCapsule.left
                 anchors.rightMargin: -1
-                anchors.topMargin: root.mode !== 2 && (centerOpen || centerCapsule.height > (root.barThickness + 0.5)) ? root.barThickness : 0
+                anchors.topMargin: root.mode !== 2 && (centerOpen || centerCapsule.height > (root.barThickness * 2)) ? root.barThickness : 0
                 color: root.barBackground
                 position: "topRight"
 
@@ -1060,13 +1092,14 @@ PanelWindow {
             }
 
             ConcaveCorner {
+                // Center top right
                 visible: root.barPosition === "top" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && (centerOpen || centerCapsule.height > (root.barThickness + 0.5) || (mode === 2 && root.hasCenterWidgets))
-                width: Config.effectiveBarMeltRadius
-                height: (root.mode !== 2 && (centerOpen || centerCapsule.height > (root.barThickness + 0.5))) ? Config.effectiveBarMeltRadius : Math.min(root.barThickness, Config.effectiveBarMeltRadius)
+                width: (centerCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
+                height: (centerCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
                 anchors.top: centerCapsule.top
                 anchors.left: centerCapsule.right
                 anchors.leftMargin: -1
-                anchors.topMargin: root.mode !== 2 && (centerOpen || centerCapsule.height > (root.barThickness + 0.5)) ? root.barThickness : 0
+                anchors.topMargin: root.mode !== 2 && (centerCapsule.height > (root.barThickness * 2)) ? root.barThickness : 0
                 color: root.barBackground
                 position: "topLeft"
 
@@ -1081,13 +1114,14 @@ PanelWindow {
             }
 
             ConcaveCorner {
+                // Center bottom left
                 visible: root.barPosition === "bottom" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && (centerOpen || centerCapsule.height > (root.barThickness + 0.5) || (mode === 2 && root.hasCenterWidgets))
-                width: Config.effectiveBarMeltRadius
-                height: (root.mode !== 2 && (centerOpen || centerCapsule.height > (root.barThickness + 0.5))) ? Config.effectiveBarMeltRadius : Math.min(root.barThickness, Config.effectiveBarMeltRadius)
+                width: (centerOpen || centerCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
+                height: (centerOpen || centerCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
                 anchors.bottom: centerCapsule.bottom
                 anchors.right: centerCapsule.left
                 anchors.rightMargin: -1
-                anchors.bottomMargin: root.mode !== 2 && (centerOpen || centerCapsule.height > (root.barThickness + 0.5)) ? root.barThickness : 0
+                anchors.bottomMargin: root.mode !== 2 && (centerCapsule.height > (root.barThickness * 2)) ? root.barThickness : 0
                 color: root.barBackground
                 position: "bottomRight"
 
@@ -1102,13 +1136,14 @@ PanelWindow {
             }
 
             ConcaveCorner {
+                // Center bottom right
                 visible: root.barPosition === "bottom" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && (centerOpen || centerCapsule.height > (root.barThickness + 0.5) || (mode === 2 && root.hasCenterWidgets))
-                width: Config.effectiveBarMeltRadius
-                height: (root.mode !== 2 && (centerOpen || centerCapsule.height > (root.barThickness + 0.5))) ? Config.effectiveBarMeltRadius : Math.min(root.barThickness, Config.effectiveBarMeltRadius)
+                width: (centerOpen || centerCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
+                height: (centerOpen || centerCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
                 anchors.bottom: centerCapsule.bottom
                 anchors.left: centerCapsule.right
                 anchors.leftMargin: -1
-                anchors.bottomMargin: root.mode !== 2 && (centerOpen || centerCapsule.height > (root.barThickness + 0.5)) ? root.barThickness : 0
+                anchors.bottomMargin: root.mode !== 2 && (centerOpen || centerCapsule.height > (root.barThickness * 2)) ? root.barThickness : 0
                 color: root.barBackground
                 position: "bottomLeft"
 
@@ -1188,20 +1223,54 @@ PanelWindow {
             }
 
             ConcaveCorner {
+                // Right top right
                 visible: root.barPosition === "top" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && (rightOpen || rightCapsule.height > (root.barThickness + 0.5) || (mode === 2 && root.hasRightWidgets))
-                width: Config.effectiveBarMeltRadius
-                height: root.barThickness
+                width: (rightOpen || rightCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
+                height: (rightOpen || rightCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
                 anchors.top: rightCapsule.top
                 anchors.right: rightCapsule.left
                 anchors.rightMargin: -1
+                anchors.topMargin: root.mode !== 2 && (rightOpen || rightCapsule.height > (root.barThickness * 3)) ? root.barThickness : 0
                 color: root.barBackground
                 position: "topRight"
+
+                Behavior on anchors.topMargin {
+                    NumberAnimation {
+                        duration: 400
+                        easing.type: Easing.OutExpo
+                    }
+
+                }
+
             }
 
             ConcaveCorner {
-                visible: root.barPosition === "top" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && mode != 0 && (rightOpen || rightCapsule.height > (root.barThickness + 0.5) || (mode >= 1 && (mode !== 2 || root.hasRightWidgets)))
+                // Right bottom right
+                visible: root.barPosition === "bottom" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && (rightOpen || rightCapsule.height > (root.barThickness + 0.5) || (mode === 2 && root.hasRightWidgets))
+                width: (rightOpen || rightCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
+                height: (rightOpen || rightCapsule.height > (root.barThickness + 0.5)) ? Config.effectiveBarMeltRadius : root.safeCapsuleMeltSize
+                anchors.bottom: rightCapsule.bottom
+                anchors.right: rightCapsule.left
+                anchors.rightMargin: -1
+                anchors.bottomMargin: root.mode !== 2 && (rightOpen || rightCapsule.height > (root.barThickness * 3)) ? root.barThickness : 0
+                color: root.barBackground
+                position: "bottomRight"
+
+                Behavior on anchors.bottomMargin {
+                    NumberAnimation {
+                        duration: 400
+                        easing.type: Easing.OutExpo
+                    }
+
+                }
+
+            }
+
+            ConcaveCorner {
+                // Right screen-edge melt (top bar)
+                visible: root.barPosition === "top" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && mode !== 0 && rightCapsule.visible
                 width: Config.effectiveBarMeltRadius
-                height: root.barThickness
+                height: Config.effectiveBarMeltRadius
                 anchors.top: rightCapsule.bottom
                 anchors.right: rightCapsule.right
                 anchors.topMargin: 0
@@ -1210,20 +1279,10 @@ PanelWindow {
             }
 
             ConcaveCorner {
-                visible: root.barPosition === "bottom" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && (rightOpen || rightCapsule.height > (root.barThickness + 0.5) || (mode === 2 && root.hasRightWidgets))
+                // Right screen-edge melt (bottom bar)
+                visible: root.barPosition === "bottom" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && mode !== 0 && rightCapsule.visible
                 width: Config.effectiveBarMeltRadius
-                height: root.barThickness
-                anchors.bottom: rightCapsule.bottom
-                anchors.right: rightCapsule.left
-                anchors.rightMargin: -1
-                color: root.barBackground
-                position: "bottomRight"
-            }
-
-            ConcaveCorner {
-                visible: root.barPosition === "bottom" && (Config.cfg && Config.cfg.barMeltEnabled !== false) && mode != 0 && (rightOpen || rightCapsule.height > (root.barThickness + 0.5) || (mode >= 1 && (mode !== 2 || root.hasRightWidgets)))
-                width: Config.effectiveBarMeltRadius
-                height: root.barThickness
+                height: Config.effectiveBarMeltRadius
                 anchors.bottom: rightCapsule.top
                 anchors.right: rightCapsule.right
                 anchors.bottomMargin: 0
@@ -1438,6 +1497,7 @@ PanelWindow {
                 root.openControlPanel("dashboard", parent ? parent.targetZone : "center");
             }
         }
+
     }
 
     Component {
