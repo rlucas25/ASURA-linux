@@ -192,15 +192,15 @@ GridLayout {
 
             Behavior on Layout.preferredWidth {
                 NumberAnimation {
-                    duration: 400
-                    easing.type: Easing.OutCirc
+                    duration: 300
+                    easing.type: Easing.OutCubic
                 }
             }
 
             Behavior on Layout.preferredHeight {
                 NumberAnimation {
-                    duration: 400
-                    easing.type: Easing.OutCirc
+                    duration: 300
+                    easing.type: Easing.OutCubic
                 }
             }
 

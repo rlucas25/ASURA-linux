@@ -940,8 +940,8 @@ PanelWindow {
 
                 Behavior on height {
                     Anim {
-                        type: "expressive"
-                        duration: 450
+                        type: "emphasized"
+                        duration: 300
                     }
                 }
             }
@@ -972,8 +972,8 @@ PanelWindow {
 
                 Behavior on height {
                     Anim {
-                        type: "expressive"
-                        duration: 450
+                        type: "emphasized"
+                        duration: 300
                     }
                 }
             }
@@ -2401,20 +2401,6 @@ PanelWindow {
         Layout.preferredHeight: implicitHeight
         Layout.alignment: Qt.AlignHCenter
 
-        Behavior on implicitWidth {
-            NumberAnimation {
-                duration: 180
-                easing.type: Easing.OutCubic
-            }
-        }
-
-        Behavior on implicitHeight {
-            NumberAnimation {
-                duration: 180
-                easing.type: Easing.OutCubic
-            }
-        }
-
         Item {
             id: groupItem
 
@@ -2424,20 +2410,6 @@ PanelWindow {
             anchors.centerIn: parent
             height: implicitHeight
             width: implicitWidth
-
-            Behavior on implicitWidth {
-                NumberAnimation {
-                    duration: 180
-                    easing.type: Easing.OutCubic
-                }
-            }
-
-            Behavior on implicitHeight {
-                NumberAnimation {
-                    duration: 180
-                    easing.type: Easing.OutCubic
-                }
-            }
 
             Rectangle {
                 anchors.fill: parent

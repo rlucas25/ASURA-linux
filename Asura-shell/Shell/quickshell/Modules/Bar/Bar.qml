@@ -890,6 +890,8 @@ PanelWindow {
                 }
 
                 Behavior on width {
+                    enabled: leftOpen || leftCapsule.height > (root.barThickness + 0.5)
+
                     Anim {
                         type: "emphasized"
                         duration: 400
@@ -1060,6 +1062,8 @@ PanelWindow {
                 }
 
                 Behavior on width {
+                    enabled: centerOpen || centerCapsule.height > (root.barThickness + 0.5)
+
                     Anim {
                         type: "expressive"
                         duration: 450
@@ -1213,6 +1217,8 @@ PanelWindow {
                 }
 
                 Behavior on width {
+                    enabled: rightOpen || rightCapsule.height > (root.barThickness + 0.5)
+
                     Anim {
                         type: "expressive"
                         duration: 450
@@ -2336,22 +2342,6 @@ PanelWindow {
 
             }
 
-            Behavior on implicitWidth {
-                NumberAnimation {
-                    duration: 180
-                    easing.type: Easing.OutCubic
-                }
-
-            }
-
-            Behavior on implicitHeight {
-                NumberAnimation {
-                    duration: 180
-                    easing.type: Easing.OutCubic
-                }
-
-            }
-
         }
 
         SingleWidgetLoader {
@@ -2361,22 +2351,6 @@ PanelWindow {
             zone: wgd.zone
             modelData: (!wgd.isGroup && wgd.modelData) ? wgd.modelData.item : null
             anchors.centerIn: parent
-        }
-
-        Behavior on implicitWidth {
-            NumberAnimation {
-                duration: 180
-                easing.type: Easing.OutCubic
-            }
-
-        }
-
-        Behavior on implicitHeight {
-            NumberAnimation {
-                duration: 180
-                easing.type: Easing.OutCubic
-            }
-
         }
 
     }

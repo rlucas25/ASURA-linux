@@ -927,6 +927,14 @@ Item {
 
     }
 
+    Behavior on implicitWidth {
+        NumberAnimation {
+            duration: 250
+            easing.type: Easing.OutCubic
+        }
+
+    }
+
     Behavior on implicitHeight {
         NumberAnimation {
             duration: 180
