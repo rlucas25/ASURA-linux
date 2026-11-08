@@ -100,29 +100,13 @@ def reload(args):
 def ensure_valid_git_repo(asura_dir: Path) -> bool:
     """Ensure asura_dir is a valid standalone git repository linked to remote."""
     git_dir = asura_dir / ".git"
-    is_valid = False
     if git_dir.exists():
         res = subprocess.run(["git", "-C", str(asura_dir), "rev-parse", "--is-inside-work-tree"], capture_output=True, text=True)
         if res.returncode == 0 and res.stdout.strip() == "true":
             rem_res = subprocess.run(["git", "-C", str(asura_dir), "remote", "get-url", "origin"], capture_output=True, text=True)
             if rem_res.returncode == 0 and rem_res.stdout.strip():
-                is_valid = True
-
-    if not is_valid:
-        print("  Notice: ~/.local/share/asura is not a configured git repository.")
-        print("  -> Initializing git repository and linking to remote...")
-        if git_dir.is_file() or git_dir.is_symlink():
-            git_dir.unlink()
-        elif git_dir.is_dir():
-            shutil.rmtree(git_dir)
-
-        subprocess.run(["git", "-C", str(asura_dir), "init"], check=False)
-        subprocess.run(["git", "-C", str(asura_dir), "remote", "add", "origin", "https://github.com/rlucas25/Asura-shell.git"], check=False)
-        subprocess.run(["git", "-C", str(asura_dir), "fetch", "origin", "main"], check=False)
-        subprocess.run(["git", "-C", str(asura_dir), "reset", "--hard", "origin/main"], check=False)
-        subprocess.run(["git", "-C", str(asura_dir), "branch", "--set-upstream-to=origin/main", "main"], check=False)
-        return True
-    return True
+                return True
+    return False
 
 
 def check_update(asura_dir: Path, force: bool = False) -> dict:
@@ -151,7 +135,7 @@ def check_update(asura_dir: Path, force: bool = False) -> dict:
 
     try:
         import urllib.request
-        url = "https://raw.githubusercontent.com/rlucas25/Asura-shell/main/VERSION"
+        url = "https://raw.githubusercontent.com/rlucas25/ASURA-linux/main/Asura-shell/VERSION"
         req = urllib.request.Request(url, headers={"User-Agent": "AsuraShell/UpdateCheck"})
         with urllib.request.urlopen(req, timeout=3) as resp:
             content = resp.read().decode("utf-8").strip()
@@ -201,7 +185,10 @@ def update(args):
         print(f"Error: Directory {asura_dir} does not exist.", file=sys.stderr)
         return False
 
-    ensure_valid_git_repo(asura_dir)
+    if not ensure_valid_git_repo(asura_dir):
+        print("Notice: ~/.local/share/asura is managed via the ASURA installer.", file=sys.stderr)
+        print("        To update, pull the latest changes in your ASURA repository and run ./install.py.", file=sys.stderr)
+        return False
 
     # Check only flag
     if getattr(args, "check", False):

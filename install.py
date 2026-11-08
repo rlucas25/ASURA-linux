@@ -1061,19 +1061,6 @@ def main():
         copy_tree(asura_shell_src, asura_dir)
         print(f"Shell files copied to: {asura_dir}")
 
-        # Ensure ~/.local/share/asura is a valid standalone git repository
-        git_target = asura_dir / ".git"
-        if git_target.is_file():
-            git_target.unlink()
-        if not (git_target / "config").exists():
-            if git_target.is_dir():
-                shutil.rmtree(git_target)
-            subprocess.run(["git", "-C", str(asura_dir), "init"], check=False)
-            subprocess.run(["git", "-C", str(asura_dir), "remote", "add", "origin", "https://github.com/rlucas25/Asura-shell.git"], check=False)
-            subprocess.run(["git", "-C", str(asura_dir), "fetch", "origin", "main"], check=False)
-            subprocess.run(["git", "-C", str(asura_dir), "reset", "--hard", "origin/main"], check=False)
-            subprocess.run(["git", "-C", str(asura_dir), "branch", "--set-upstream-to=origin/main", "main"], check=False)
-
         # Copy default Asura user configs from Asura-shell/asura to ~/.config/asura if missing
         asura_config_src = asura_dir / "asura"
         if not asura_config_src.exists():
