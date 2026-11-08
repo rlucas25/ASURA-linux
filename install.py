@@ -463,6 +463,17 @@ def setup_gtk_theme():
         except Exception as e:
             print(f"  Notice: Could not download adw-gtk3 widget theme: {e}")
 
+    # Clean up legacy GTK bookmarks if present
+    gtk3_bookmarks = dot_dir / "gtk-3.0/bookmarks"
+    if gtk3_bookmarks.exists():
+        try:
+            b_text = gtk3_bookmarks.read_text()
+            if any(term in b_text for term in ["noctalia", "niri", "Compressed Files", "Document Files"]):
+                gtk3_bookmarks.unlink()
+                print("  ✓ Cleaned legacy file manager bookmarks from ~/.config/gtk-3.0/bookmarks")
+        except Exception:
+            pass
+
     # Configure GTK theme and dark mode via gsettings
     if shutil.which("gsettings"):
         subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", "gtk-theme", "adw-gtk3-dark"], check=False)
