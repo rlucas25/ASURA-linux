@@ -83,6 +83,10 @@ chmod +x install.py
 ./install.py
 ```
 
+> [!TIP]
+> During the installation it is normal for a composer window to be opened for the installation of some dependencies do not be alarmed and just wait
+
+
 The installer detects your Linux distribution, enables any necessary external repositories (e.g. Fedora COPR), installs all system dependencies, fonts, cursor/icon themes, GTK configurations, and sets up your default environment.
 
 ### Installer Flags
