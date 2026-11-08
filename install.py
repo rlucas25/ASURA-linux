@@ -203,7 +203,9 @@ def install_dependencies():
         print("Installing dependencies for Arch / CachyOS Linux...")
         arch_official = [
             # Base Hyprland & Shell
-            "hyprland", "hyprpm", "hypridle", "quickshell", "kitty", "fastfetch", "flameshot", "micro", "starship", "btop", "fish",
+            "hyprland",
+            # "hyprpm",
+            "hypridle", "quickshell", "kitty", "fastfetch", "flameshot", "micro", "starship", "btop", "fish",
             "nautilus", "pavucontrol", "vivaldi", "code", "cava", "nwg-look", "awww",
             # Fish Shell Tools
             "bat", "zoxide", "eza", "fzf", "fd",
@@ -1163,7 +1165,7 @@ def main():
     setup_xdg_portals()
     setup_asura_config()
     setup_micro_plugins()
-    setup_hyprland_plugins()
+    # setup_hyprland_plugins()
     setup_default_apps()
 
     print("\n" + "=" * 56)

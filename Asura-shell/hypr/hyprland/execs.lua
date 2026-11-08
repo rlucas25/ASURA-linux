@@ -47,7 +47,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd(home .. "/.local/bin/asura run")
 
     -- Start hyprland plugins
-    hl.exec_cmd("bash " .. home .. "/.config/hypr/scripts/init-plugins.sh")
+--    hl.exec_cmd("bash " .. home .. "/.config/hypr/scripts/init-plugins.sh")
 
     hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP")
     hl.exec_cmd("systemctl --user start hyprland-session.target")
