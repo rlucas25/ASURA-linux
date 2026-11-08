@@ -210,19 +210,21 @@ echo "[switchwall.sh] Generating Material You colors (mode: $MODE, scheme: $SCHE
 "$PYTHON_BIN" "$SCRIPT_DIR/generate_colors_material.py" "${GEN_ARGS[@]}" >/dev/null 2>&1 || true
 if [[ "$APP_THEMING_ENABLED" == "true" ]] && ! is_template_disabled "vivaldi" && ! is_template_disabled "vivaldi-compat"; then
 if [[ -n "$IMAGE_PATH" && -f "$IMAGE_PATH" ]]; then
-    VIVALDI_THUMB_DIR="$HOME/.config/vivaldi/Default/VivaldiThumbnails"
-    if [[ -d "$HOME/.config/vivaldi" ]]; then
+    if [[ -d "$HOME/.config/vivaldi" ]] || command -v vivaldi &>/dev/null || command -v vivaldi-stable &>/dev/null; then
+        VIVALDI_THUMB_DIR="$HOME/.config/vivaldi/Default/VivaldiThumbnails"
         mkdir -p "$VIVALDI_THUMB_DIR"
         "$PYTHON_BIN" -c '
-import json, os, sys
-from PIL import Image
+import json, os, shutil, sys
 
 wall = sys.argv[1]
-pref_path = os.path.expanduser("~/.config/vivaldi/Default/Preferences")
 pal_path = sys.argv[2]
-thumb_dir = os.path.expanduser("~/.config/vivaldi/Default/VivaldiThumbnails")
+pref_dir = os.path.expanduser("~/.config/vivaldi/Default")
+pref_path = os.path.join(pref_dir, "Preferences")
+thumb_dir = os.path.join(pref_dir, "VivaldiThumbnails")
 
 try:
+    os.makedirs(thumb_dir, exist_ok=True)
+
     with open(pal_path) as f:
         pal = json.load(f)
     bg_hex = pal.get("background", "#191b1f")
@@ -230,37 +232,94 @@ try:
     accent_hex = pal.get("primary", "#b16873")
     surface_hex = pal.get("surface", "#2e2f37")
 
-    im = Image.open(wall).convert("RGB")
-    im.save(os.path.join(thumb_dir, "AsuraWallpaper.jpg"), "JPEG", quality=95)
-    im.save(os.path.join(thumb_dir, "APFHCOH3KOCXQAA5MKVZZVNBTQSZAT6E.jpg"), "JPEG", quality=95)
+    target_thumb1 = os.path.join(thumb_dir, "AsuraWallpaper.jpg")
+    target_thumb2 = os.path.join(thumb_dir, "APFHCOH3KOCXQAA5MKVZZVNBTQSZAT6E.jpg")
 
+    saved = False
+    try:
+        from PIL import Image
+        im = Image.open(wall).convert("RGB")
+        im.save(target_thumb1, "JPEG", quality=95)
+        im.save(target_thumb2, "JPEG", quality=95)
+        saved = True
+    except Exception:
+        pass
+
+    if not saved:
+        try:
+            shutil.copy2(wall, target_thumb1)
+            shutil.copy2(wall, target_thumb2)
+        except Exception:
+            pass
+
+    data = {}
     if os.path.exists(pref_path):
-        with open(pref_path, "r") as f:
-            data = json.load(f)
-        viv = data.setdefault("vivaldi", {})
-        themes = viv.setdefault("themes", {})
-        user_themes = themes.setdefault("user", [])
-        for t in user_themes:
-            if t.get("name") in ("Asura Dragonfall", "Dragonfall"):
-                t["colorBg"] = bg_hex
-                t["colorFg"] = fg_hex
-                t["colorAccentBg"] = accent_hex
-                t["colorHighlightBg"] = accent_hex
-                t["colorWindowBg"] = surface_hex
-                t["backgroundImage"] = "chrome://vivaldi-data/thumbnail/APFHCOH3KOCXQAA5MKVZZVNBTQSZAT6E.jpg"
-        themes["current"] = "ffde18ac-2952-4fc6-843e-e1b9447c2d41"
-        sched = viv.setdefault("theme", {}).setdefault("schedule", {})
-        os_dict = sched.setdefault("o_s", {})
-        os_dict["dark"] = "ffde18ac-2952-4fc6-843e-e1b9447c2d41"
-        os_dict["light"] = "ffde18ac-2952-4fc6-843e-e1b9447c2d41"
-        app = viv.setdefault("appearance", {})
-        asura_viv_dir = os.path.expanduser("~/.config/asura/vivaldi")
-        os.makedirs(asura_viv_dir, exist_ok=True)
-        app["css_ui_mods_directory"] = asura_viv_dir
-        tmp_path = pref_path + ".tmp"
-        with open(tmp_path, "w") as f:
-            json.dump(data, f, indent=2)
-        os.replace(tmp_path, pref_path)
+        try:
+            with open(pref_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = {}
+
+    viv = data.setdefault("vivaldi", {})
+    themes = viv.setdefault("themes", {})
+    user_themes = themes.setdefault("user", [])
+
+    asura_theme = None
+    for t in user_themes:
+        if t.get("id") == "ffde18ac-2952-4fc6-843e-e1b9447c2d41" or t.get("name") in ("Asura", "Asura Dragonfall", "Dragonfall"):
+            asura_theme = t
+            break
+
+    if asura_theme is None:
+        asura_theme = {
+            "accentFromPage": False,
+            "accentOnWindow": False,
+            "accentSaturationLimit": 1,
+            "alpha": 0.75,
+            "backgroundPosition": "stretch",
+            "backgroundSource": "",
+            "blur": 3,
+            "colorPosition": "unified",
+            "contrast": 2,
+            "dimBlurred": False,
+            "engineVersion": 1,
+            "id": "ffde18ac-2952-4fc6-843e-e1b9447c2d41",
+            "name": "Asura",
+            "preferSystemAccent": False,
+            "radius": 14,
+            "simpleScrollbar": True,
+            "transparencyTabBar": False,
+            "transparencyTabs": False,
+            "url": "",
+            "version": 1
+        }
+        user_themes.append(asura_theme)
+
+    asura_theme["name"] = "Asura"
+    asura_theme["id"] = "ffde18ac-2952-4fc6-843e-e1b9447c2d41"
+    asura_theme["colorBg"] = bg_hex
+    asura_theme["colorFg"] = fg_hex
+    asura_theme["colorAccentBg"] = accent_hex
+    asura_theme["colorHighlightBg"] = accent_hex
+    asura_theme["colorWindowBg"] = surface_hex
+    asura_theme["colorPosition"] = "unified"
+    asura_theme["backgroundImage"] = "chrome://vivaldi-data/thumbnail/AsuraWallpaper.jpg"
+
+    themes["current"] = "ffde18ac-2952-4fc6-843e-e1b9447c2d41"
+    sched = viv.setdefault("theme", {}).setdefault("schedule", {})
+    os_dict = sched.setdefault("o_s", {})
+    os_dict["dark"] = "ffde18ac-2952-4fc6-843e-e1b9447c2d41"
+    os_dict["light"] = "ffde18ac-2952-4fc6-843e-e1b9447c2d41"
+
+    app = viv.setdefault("appearance", {})
+    asura_viv_dir = os.path.expanduser("~/.config/asura/vivaldi")
+    os.makedirs(asura_viv_dir, exist_ok=True)
+    app["css_ui_mods_directory"] = asura_viv_dir
+
+    tmp_path = pref_path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp_path, pref_path)
 except Exception:
     pass
 ' "$IMAGE_PATH" "$_PALETTE_OUT" 2>/dev/null || true

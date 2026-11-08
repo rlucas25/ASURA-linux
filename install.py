@@ -951,6 +951,13 @@ def setup_asura_config():
         except Exception as e:
             print(f"  Notice: Python venv setup: {e}")
 
+    # Pre-provision Vivaldi directories if needed so switchwall configures them cleanly
+    viv_thumb_dir = home / ".config/vivaldi/Default/VivaldiThumbnails"
+    try:
+        viv_thumb_dir.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+
     # Generate initial theme colors from default wallpaper
     switchwall_script = asura_dir / "Shell/quickshell/scripts/colors/switchwall.sh"
     if switchwall_script.exists() and default_wallpaper_path.exists():

@@ -64,6 +64,31 @@
     --colorFgIntense:
         {{colors.on_surface.default.rgb}} !important;
 
+    --colorFgDark:
+        {{colors.on_surface.default.rgb}} !important;
+
+    /*
+     * Vivaldi UI image & icon foregrounds
+     */
+
+    --colorImageFg:
+        {{colors.on_surface.default.rgb}} !important;
+
+    --colorImageTopFg:
+        {{colors.on_surface.default.rgb}} !important;
+
+    --colorImageBottomFg:
+        {{colors.on_surface.default.rgb}} !important;
+
+    --colorImageCenterFg:
+        {{colors.on_surface.default.rgb}} !important;
+
+    --colorImageLeftFg:
+        {{colors.on_surface.default.rgb}} !important;
+
+    --colorImageRightFg:
+        {{colors.on_surface.default.rgb}} !important;
+
 
     /*
      * Keep faded text readable.
@@ -423,8 +448,8 @@
             {{colors.background.default.rgba | set_alpha: 0.38}},
             {{colors.background.default.rgba | set_alpha: 0.38}}
         ),
-        url("chrome://vivaldi-data/thumbnail/APFHCOH3KOCXQAA5MKVZZVNBTQSZAT6E.jpg"),
-        url("chrome://vivaldi-data/thumbnail/AsuraWallpaper.jpg") !important;
+        url("chrome://vivaldi-data/thumbnail/AsuraWallpaper.jpg"),
+        url("chrome://vivaldi-data/thumbnail/APFHCOH3KOCXQAA5MKVZZVNBTQSZAT6E.jpg") !important;
 
     background-size: cover !important;
 
@@ -440,7 +465,7 @@
 
 /*
  * ============================================================
- * START PAGE
+ * START PAGE & INTERNAL CONTAINERS
  * ============================================================
  *
  * The Start Page itself must be transparent.
@@ -451,7 +476,14 @@
  * ============================================================
  */
 
+#browser #webview-container,
+#browser #webpage-stack,
+#browser .webpageview.internal,
+#browser .webpageview.internal > div,
+#browser .webpageview.internal.visible .welcome-wrapper,
+#browser .webpageview.internal.visible .startpage.is-showing-speeddial,
 #browser .startpage,
+#browser .startpage.is-showing-speeddial,
 #browser .startpage .manager,
 #browser .startpage .manager > div,
 #browser .startpage .inner,
@@ -459,7 +491,8 @@
 #browser .startpage .startpage-content,
 #browser .startpage .SpeedDialView,
 #browser .startpage .SpeedDialView-Content,
-#browser .startpage .webpage {
+#browser .startpage .webpage,
+#browser .startpage .sdwrapper {
     background: transparent !important;
 
     background-color: transparent !important;
@@ -850,4 +883,19 @@
 
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+}
+
+/*
+ * ============================================================
+ * TOOLBAR BUTTONS & ICONS CONTRAST
+ * ============================================================
+ */
+
+#browser .button-toolbar svg,
+#browser .ToolbarButton-Button svg,
+#browser button.button-toolbar svg,
+#browser .button-toolbar svg path,
+#browser .ToolbarButton-Button svg path {
+    fill: {{colors.on_surface.default.rgb}} !important;
+    color: {{colors.on_surface.default.rgb}} !important;
 }
