@@ -206,7 +206,7 @@ def install_dependencies():
             "hyprland",
             # "hyprpm",
             "hypridle", "quickshell", "kitty", "fastfetch", "flameshot", "micro", "starship", "btop", "fish",
-            "nautilus", "pavucontrol", "vivaldi", "code", "cava", "nwg-look", "awww",
+            "nautilus", "pavucontrol", "vivaldi", "code", "cava", "nwg-look", "awww", "wlsunset",
             # Fish Shell Tools
             "bat", "zoxide", "eza", "fzf", "fd",
             # Hyprland session helpers & build tools for hyprpm
@@ -263,7 +263,7 @@ def install_dependencies():
         fedora_packages = [
             # Base Hyprland & Shell
             "hyprland", "hypridle", "hyprpolkitagent", "quickshell", "awww", "swww", "starship",
-            "nautilus", "pavucontrol", "vivaldi-stable", "code",
+            "nautilus", "pavucontrol", "wlsunset", "vivaldi-stable", "code",
             # Fish Shell Tools
             "bat", "zoxide", "eza", "fzf", "fd-find",
             # Hyprland session helpers & build tools for hyprpm
