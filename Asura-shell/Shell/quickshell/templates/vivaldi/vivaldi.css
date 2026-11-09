@@ -891,11 +891,8 @@
  * ============================================================
  */
 
-#browser .button-toolbar svg,
-#browser .ToolbarButton-Button svg,
-#browser button.button-toolbar svg,
-#browser .button-toolbar svg path,
-#browser .ToolbarButton-Button svg path {
-    fill: {{colors.on_surface.default.rgb}} !important;
+#browser .button-toolbar,
+#browser .ToolbarButton-Button,
+#browser button.button-toolbar {
     color: {{colors.on_surface.default.rgb}} !important;
 }
