@@ -31,29 +31,23 @@
     "clock24h": false,
     "clockFormat": "time_calendar",
     "colorsAutoGenerate": true,
-    "customKeybinds": [
-    ],
-    "defaultApps": {
-    },
-    "disabledTemplates": [
-    ],
+    "customKeybinds": [],
+    "defaultApps": {},
+    "disabledTemplates": [],
     "ecoMode": false,
     "exclusiveMode": true,
-    "favoritePresets": [
-    ],
-    "favoriteWallpapers": [
-    ],
+    "favoritePresets": [],
+    "favoriteWallpapers": [],
     "generalOpacity": 0.85,
     "generalRadius": 20,
     "hardwareHidePercent": false,
     "hardwareShowAbsolute": false,
     "isDarkMode": true,
-    "launcherCalculatorNoPrefix": false,
-    "launcherCommandsNoPrefix": false,
-    "launcherHiddenApps": [
-    ],
+    "launcherCalculatorNoPrefix": true,
+    "launcherCommandsNoPrefix": true,
+    "launcherHiddenApps": [],
     "launcherPosition": "default",
-    "launcherWebSearchNoPrefix": false,
+    "launcherWebSearchNoPrefix": true,
     "notificationPosition": "top_right",
     "notificationPrivacy": false,
     "notificationSound": "message.oga",
