@@ -21,11 +21,13 @@
 </p>
 
 ---
-<h2><sub><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Movie%20Camera.png" alt="Movie Camera" width="25" height="25" /></sub> Showcase</h2>
+<h2><sub><img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Movie%20Camera.png" alt="Movie Camera" width="25" height="25" /></sub> Showcase Video</h2>
 
 <div align="center">
+  
   <a href="https://www.youtube.com/watch?v=chehbA8aQa0">
     <img src="https://img.youtube.com/vi/chehbA8aQa0/maxresdefault.jpg" width="800" alt="Asura Linux Showcase">
+      <h5>Click to check it out</h5>
   </a>
 </div>
 
