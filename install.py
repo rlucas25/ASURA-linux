@@ -161,6 +161,25 @@ gpgkey=https://repo.vivaldi.com/archive/linux_signing_key.pub
         subprocess.run(["sudo", "tee", str(vivaldi_repo)], input=vivaldi_content, text=True, capture_output=True, check=False)
 
 
+def setup_power_management_rules():
+    """Install Polkit rule allowing active sessions to switch power profiles without password."""
+    polkit_dir = Path("/etc/polkit-1/rules.d")
+    rule_file = polkit_dir / "49-asura-powerprofiles.rules"
+    rule_content = """/* Allow users in active sessions to switch power profiles without authentication */
+polkit.addRule(function(action, subject) {
+    if (action.id == "net.hadess.PowerProfiles.switch-profile") {
+        return polkit.Result.YES;
+    }
+});
+"""
+    try:
+        if polkit_dir.exists():
+            print("Configuring Polkit rule for power profile switching...")
+            subprocess.run(["sudo", "tee", str(rule_file)], input=rule_content, text=True, capture_output=True, check=False)
+    except Exception as e:
+        print(f"Notice: Could not configure Polkit rule for power profiles: {e}")
+
+
 def setup_system_services(distro="Linux"):
     """Enable and start default system daemons (Battery, Bluetooth, Network, Energy)."""
     if not shutil.which("systemctl"):
@@ -172,10 +191,11 @@ def setup_system_services(distro="Linux"):
         "NetworkManager.service",
     ]
 
-    # Power profile daemon (tuned-ppd on Fedora 41+ or power-profiles-daemon)
-    if shutil.which("tuned-adm"):
+    # Power profile daemon (tuned + tuned-ppd on Fedora 41+ or power-profiles-daemon on Arch/older setups)
+    if shutil.which("tuned-adm") or distro == "Fedora":
         services.append("tuned.service")
-    elif shutil.which("powerprofilesctl"):
+        services.append("tuned-ppd.service")
+    elif shutil.which("powerprofilesctl") or shutil.which("power-profiles-daemon"):
         services.append("power-profiles-daemon.service")
 
     print(f"Configuring default {distro} system services (Battery, Bluetooth, Network, Power)...")
@@ -195,11 +215,16 @@ def setup_system_services(distro="Linux"):
         except Exception as e:
             print(f"     Notice: Could not run systemctl for {service}: {e}")
 
+    setup_power_management_rules()
+
 
 def install_dependencies():
     distro = detect_distro()
 
     if distro == "Arch":
+        print("Updating Arch Linux system packages (pacman -Syu)...")
+        subprocess.run(["sudo", "pacman", "-Syu", "--noconfirm"], check=True)
+
         print("Installing dependencies for Arch / CachyOS Linux...")
         arch_official = [
             # Base Hyprland & Shell
@@ -260,6 +285,9 @@ def install_dependencies():
         # Setup official third-party repos for VS Code & Vivaldi
         setup_fedora_external_repos()
 
+        print("Updating Fedora system packages (dnf upgrade)...")
+        subprocess.run(["sudo", "dnf", "upgrade", "-y", "--refresh"], check=True)
+
         fedora_packages = [
             # Base Hyprland & Shell
             "hyprland", "hypridle", "hyprpolkitagent", "quickshell", "awww", "swww", "starship",
@@ -281,12 +309,10 @@ def install_dependencies():
             # Font & archive tools
             "fontconfig", "git", "tar", "xz",
             # GTK widget theme & core utilities
-            "adw-gtk3-theme", "which"
+            "adw-gtk3-theme", "which",
+            # Power Management (tuned & tuned-ppd provide powerprofilesctl on Fedora)
+            "tuned", "tuned-ppd"
         ]
-
-        # In Fedora 41+, tuned-ppd provides powerprofilesctl and conflicts with power-profiles-daemon
-        if not shutil.which("powerprofilesctl"):
-            fedora_packages.append("power-profiles-daemon")
 
         # Install packages with flags to gracefully handle optional builds and conflicts
         subprocess.run(["sudo", "dnf", "install", "-y", "--skip-unavailable", "--skip-broken"] + fedora_packages, check=True)
