@@ -92,7 +92,7 @@ chmod +x install.py
 ```
 
 > [!TIP]
-> During the installation it is normal for a composer window to be opened for the installation of some dependencies do not be alarmed and just wait
+> After installation, log out or restart your computer. To use Asura, select Hyprland at the start of your next session.
 
 
 The installer detects your Linux distribution, enables any necessary external repositories (e.g. Fedora COPR), installs all system dependencies, fonts, cursor/icon themes, GTK configurations, and sets up your default environment.
